@@ -132,11 +132,6 @@
   color: var(--primary-medium);
 }
 
-/* Hide custom banner */
-.ideas-portal-category .above-main-container-outlet.custom-banner {
-  display: none;
-}
-
 /* Hover animations */
 .ideas-portal-category .ideas-tag-filters .tag-filter {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
