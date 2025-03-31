@@ -1,18 +1,21 @@
 /*  ------------------------IDEAS PORTAL ------------------------*/
 
-@each $category_id in split-list(settings.ideas_portal_categories, "|") {
-    // Generate a selector for each enabled category
+// Apply styles to all categories in the settings list
+$category_ids: unquote(settings.ideas_portal_categories);
+
+@if $category_ids != "" {
+  @each $category_id in str-split($category_ids, "|") {
     body.category-#{$category_id} {
       /* Fixes the width of the ideas portal category */
       .voting-category.list-container {
         max-width: 1110px;
       }
-  
+
       /* Hide "no more topics" text at the bottom of the ideas portal category */
       .topic-list-bottom {
         display: none;
       }
-  
+
       /* Custom colors per tag for ideas portal categories */
       [data-tag-name="new"] { background-color: #007bff; }
       [data-tag-name="planned"] { background-color: #17a2b8; }
@@ -21,7 +24,7 @@
       [data-tag-name="under-review"] { background-color: #20c997; }
       [data-tag-name="completed"] { background-color: #28a745; }
       [data-tag-name="not-planned"] { background-color: #dc3545; }
-  
+
       [data-tag-name="new"],
       [data-tag-name="planned"],
       [data-tag-name="in-progress"],
@@ -38,7 +41,7 @@
         color: white;
         margin-right: 4px;
       }
-  
+
       /* Status filter bar styling for ideas portal categories */
       .ideas-tag-filters {
         margin: 16px 0;
@@ -80,12 +83,12 @@
       .ideas-tag-filters .tag-filter:hover {
         opacity: 0.9;
       }
-  
+
       /* Hide the category/tag filter for ideas portal categories */
       .category-breadcrumb {
         display: none;
       }
-  
+
       /* Change the topic list name to "Ideas" for the ideas portal categories */
       .topic-list-header span:first-of-type::before {
         content: "Ideas";
@@ -101,12 +104,12 @@
         left: 0;
         color: var(--primary-medium);
       }
-  
+
       /* Hide the default custom banner for ideas portal categories */
       .above-main-container-outlet.custom-banner {
         display: none;
       }
-  
+
       /* Small hover animation for ideas portal categories */
       .ideas-tag-filters .tag-filter {
         transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -118,3 +121,4 @@
       }
     }
   }
+}
