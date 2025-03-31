@@ -3,8 +3,8 @@
 /* This CSS will be applied to the ideas-portal-category class */
 /* The JavaScript will add this class to enabled categories */
 
-/* Hero banner for ideas portal categories */
-.ideas-portal-category #main-container::before {
+/* Use the existing banner - remove the ::before content */
+/* .ideas-portal-category #main-container::before {
   content: "Feature Requests";
   display: block;
   background-color: var(--secondary);
@@ -17,7 +17,12 @@
   border-radius: 8px;
   margin-bottom: 20px;
   line-height: 1.5;
-  border-top: 10px solid #3AB54A; /* Colored top border */
+  border-top: 10px solid #3AB54A;
+} */
+
+/* Don't hide the default custom banner */
+.ideas-portal-category .above-main-container-outlet.custom-banner {
+  display: block;
 }
 
 .ideas-portal-category .voting-category.list-container {
