@@ -1,0 +1,5 @@
+ideas_portal_categories:
+  type: list
+  list_type: category
+  default: ""
+  description: "Select categories where the Ideas Portal styling should be applied."
