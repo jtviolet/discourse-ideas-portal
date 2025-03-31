@@ -15,7 +15,55 @@ export default apiInitializer("0.11.1", (api) => {
     return;
   }
 
-  // Helper function to get current category info using the discovery service
+  // Function to update sidebar category names with parent category names
+  const updateSidebarCategoryNames = () => {
+    // Get all categories from Discourse
+    const siteCategories = api.container.lookup("site:main").categories;
+    if (!siteCategories || !siteCategories.length) {
+      console.log("Ideas Portal: No categories found in site");
+      return;
+    }
+    
+    // Find all sidebar category links
+    const sidebarCategoryLinks = document.querySelectorAll(".sidebar-section-link-wrapper a.sidebar-section-link");
+    
+    sidebarCategoryLinks.forEach(link => {
+      // Extract category ID from the link's href attribute
+      const href = link.getAttribute("href");
+      if (!href || !href.includes("/c/")) return;
+      
+      const match = href.match(/\/c\/(?:.*\/)?(\d+)/);
+      if (!match || !match[1]) return;
+      
+      const categoryId = parseInt(match[1], 10);
+      
+      // Check if this is one of our enabled categories
+      if (!enabledCategories.includes(categoryId)) return;
+      
+      // Find the category in the site categories
+      const category = siteCategories.find(cat => cat.id === categoryId);
+      if (!category) return;
+      
+      // Check if it has a parent category
+      if (!category.parent_category_id) return;
+      
+      // Find the parent category
+      const parentCategory = siteCategories.find(cat => cat.id === category.parent_category_id);
+      if (!parentCategory) return;
+      
+      // Get the span that contains the category name
+      const nameSpan = link.querySelector(".sidebar-section-link-content-text");
+      if (!nameSpan) return;
+      
+      // Check if the parent name is already prefixed
+      const currentText = nameSpan.textContent.trim();
+      if (currentText.startsWith(parentCategory.name)) return;
+      
+      // Update the name to include the parent category name
+      nameSpan.textContent = `${parentCategory.name} ${currentText}`;
+      console.log(`Ideas Portal: Updated sidebar category name to "${nameSpan.textContent}"`);
+    });
+  };
   const getCurrentCategoryInfo = () => {
     // Use the discovery service instead of the deprecated controller
     const discoveryService = api.container.lookup("service:discovery");
@@ -52,7 +100,14 @@ export default apiInitializer("0.11.1", (api) => {
     'already-exists': 'Already Exists',
   };
 
-  // When page changes, apply our customizations
+  // Watch for DOM changes to update sidebar category names when sidebar is loaded or changed
+  api.onAppEvent("page:changed", () => {
+    // Small delay to ensure sidebar is fully rendered
+    setTimeout(updateSidebarCategoryNames, 500);
+  });
+  
+  // Also run once on initialization
+  setTimeout(updateSidebarCategoryNames, 1000);
   api.onPageChange(() => {
     // Get current category info
     const currentCategory = getCurrentCategoryInfo();
@@ -80,6 +135,9 @@ export default apiInitializer("0.11.1", (api) => {
     } else {
       console.log("Ideas Portal: Custom banner title element not found");
     }
+    
+    // Update sidebar category names to include parent category
+    updateSidebarCategoryNames();
     
     // 1. Change tag text to proper casing
     document.querySelectorAll('[data-tag-name]').forEach(el => {
