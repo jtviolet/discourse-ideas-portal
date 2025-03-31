@@ -24,63 +24,74 @@ export default apiInitializer("0.11.1", (api) => {
     return enabledCategories.includes(currentCategoryId);
   };
 
-  // When category pages load, check if we should add the filters
+  // Change tag text to proper casing instead of hyphenated
+  const tagMap = {
+    'new': 'New',
+    'under-review': 'Under Review',
+    'planned': 'Planned',
+    'in-progress': 'In Progress',
+    'completed': 'Completed',
+    'not-planned': 'Not Planned',
+    'already-exists': 'Already Exists',
+  };
+
+  // When page changes, apply our customizations
   api.onPageChange(() => {
     if (!isCurrentCategoryEnabled()) return;
     
-    // Add tag filters if they don't exist yet
-    const filtersExist = document.querySelector(".ideas-tag-filters");
-    if (filtersExist) return;
+    // 1. Change tag text to proper casing
+    document.querySelectorAll('[data-tag-name]').forEach(el => {
+      const tag = el.getAttribute('data-tag-name');
+      if (tag && tagMap[tag]) {
+        el.textContent = tagMap[tag];
+      }
+    });
     
-    // Wait for DOM to be ready
-    setTimeout(() => {
-      // Find a good insertion point
-      const insertPoint = document.querySelector(".list-controls");
-      if (!insertPoint) return;
-      
-      // Create the filter container
-      const filterContainer = document.createElement("div");
-      filterContainer.className = "ideas-tag-filters";
-      
-      // Add title
-      const title = document.createElement("h3");
-      title.className = "ideas-filter-title";
-      title.textContent = "Filter by Status";
-      filterContainer.appendChild(title);
-      
-      // Add tag filters
-      const tagNames = [
-        "new", 
-        "planned", 
-        "in-progress", 
-        "under-review", 
-        "already-exists", 
-        "completed", 
-        "not-planned"
-      ];
-      
-      // Base URL for the current category
-      const baseUrl = window.location.pathname.split("?")[0];
-      
-      // Add reset filter
-      const resetFilter = document.createElement("a");
-      resetFilter.href = baseUrl;
-      resetFilter.className = "tag-filter tag-filter-reset";
-      resetFilter.textContent = "All";
-      filterContainer.appendChild(resetFilter);
-      
-      // Add tag filters
-      tagNames.forEach(tag => {
-        const filter = document.createElement("a");
-        filter.href = `${baseUrl}?tags=${tag}`;
-        filter.className = `tag-filter ${tag}`;
-        filter.dataset.tagName = tag; // Use data attribute to apply styling
-        filter.textContent = tag.replace(/-/g, " ");
-        filterContainer.appendChild(filter);
-      });
-      
-      // Insert before list controls
-      insertPoint.parentNode.insertBefore(filterContainer, insertPoint);
-    }, 100);
+    // 2. Add tag filters if they don't exist yet
+    if (document.querySelector('.ideas-tag-filters')) return;
+    
+    // Get current category information
+    const currentController = api.container.lookup("controller:navigation/category");
+    const currentCategory = currentController?.category;
+    
+    if (!currentCategory) return;
+    
+    const categoryId = currentCategory.id;
+    const categorySlug = currentCategory.slug;
+    const parentSlug = currentCategory.parentCategory ? 
+                      `${currentCategory.parentCategory.slug}/` : '';
+    
+    // Create filter container
+    const container = document.createElement('div');
+    container.className = 'ideas-tag-filters list-controls';
+    
+    // Add title
+    const title = document.createElement('h3');
+    title.className = 'ideas-filter-title';
+    title.textContent = 'Filter by Status';
+    container.appendChild(title);
+    
+    // Add reset filter
+    const resetFilter = document.createElement('a');
+    resetFilter.href = `/c/${parentSlug}${categorySlug}/${categoryId}`;
+    resetFilter.className = 'tag-filter tag-filter-reset';
+    resetFilter.textContent = 'Show All';
+    container.appendChild(resetFilter);
+    
+    // Add status tag filters
+    Object.keys(tagMap).forEach(tag => {
+      const filter = document.createElement('a');
+      filter.href = `/tags/c/${parentSlug}${categorySlug}/${categoryId}/${tag}`;
+      filter.className = 'tag-filter';
+      filter.setAttribute('data-tag-name', tag);
+      filter.textContent = tagMap[tag];
+      container.appendChild(filter);
+    });
+    
+    // Insert the filter container after the navigation container
+    const target = document.querySelector('.navigation-container');
+    if (target) {
+      target.insertAdjacentElement('afterend', container);
+    }
   });
 });
