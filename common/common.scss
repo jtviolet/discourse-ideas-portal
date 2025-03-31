@@ -20,11 +20,6 @@
   border-top: 10px solid #3AB54A;
 } */
 
-/* Don't hide the default custom banner */
-.ideas-portal-category .above-main-container-outlet.custom-banner {
-  display: block;
-}
-
 .ideas-portal-category .voting-category.list-container {
   max-width: 1110px;
 }
@@ -135,11 +130,6 @@
   position: absolute;
   left: 0;
   color: var(--primary-medium);
-}
-
-/* Hide custom banner */
-.ideas-portal-category .above-main-container-outlet.custom-banner {
-  display: none;
 }
 
 /* Hover animations */
