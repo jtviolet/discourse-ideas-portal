@@ -89,8 +89,16 @@ export default apiInitializer("0.11.1", (api) => {
       if (document.querySelector('.ideas-tag-filters')) return;
       
       const categorySlug = currentCategory.slug;
-      const parentSlug = currentCategory.parentCategory ? 
-                        `${currentCategory.parentCategory.slug}/` : '';
+      let parentSlug = "";
+      
+      // Get parent category info if available
+      if (currentCategory.parent_category_id) {
+        const siteCategories = api.container.lookup("site:main").categories;
+        const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+        if (parentCategory) {
+          parentSlug = `${parentCategory.slug}/`;
+        }
+      }
       
       // Create filter container
       const container = document.createElement('div');
@@ -104,7 +112,7 @@ export default apiInitializer("0.11.1", (api) => {
       
       // Add reset filter
       const resetFilter = document.createElement('a');
-      resetFilter.href = `/c/${parentSlug}${categorySlug}/${categoryId}`;
+      resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
       resetFilter.className = 'tag-filter tag-filter-reset';
       resetFilter.textContent = 'Show All';
       container.appendChild(resetFilter);
