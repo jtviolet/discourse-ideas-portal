@@ -28,6 +28,14 @@ export default apiInitializer("0.11.1", (api) => {
     const sidebarCategoryLinks = document.querySelectorAll(".sidebar-section-link-wrapper a.sidebar-section-link");
     
     sidebarCategoryLinks.forEach(link => {
+      // Get the span that contains the category name
+      const nameSpan = link.querySelector(".sidebar-section-link-content-text");
+      if (!nameSpan) return;
+      
+      // Check if this is an "Ideas" category (by name)
+      const currentText = nameSpan.textContent.trim();
+      if (currentText !== "Ideas") return;
+      
       // Extract category ID from the link's href attribute
       const href = link.getAttribute("href");
       if (!href || !href.includes("/c/")) return;
@@ -51,16 +59,8 @@ export default apiInitializer("0.11.1", (api) => {
       const parentCategory = siteCategories.find(cat => cat.id === category.parent_category_id);
       if (!parentCategory) return;
       
-      // Get the span that contains the category name
-      const nameSpan = link.querySelector(".sidebar-section-link-content-text");
-      if (!nameSpan) return;
-      
-      // Check if the parent name is already prefixed
-      const currentText = nameSpan.textContent.trim();
-      if (currentText.startsWith(parentCategory.name)) return;
-      
       // Update the name to include the parent category name
-      nameSpan.textContent = `${parentCategory.name} ${currentText}`;
+      nameSpan.textContent = `${parentCategory.name} Ideas`;
       console.log(`Ideas Portal: Updated sidebar category name to "${nameSpan.textContent}"`);
     });
   };
