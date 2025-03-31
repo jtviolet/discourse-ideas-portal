@@ -1,3 +1,30 @@
+/*  ------------------------IDEAS PORTAL ------------------------*/
+
+/* This CSS will be applied to the ideas-portal-category class */
+/* The JavaScript will add this class to enabled categories */
+
+/* Use the existing banner - remove the ::before content */
+/* .ideas-portal-category #main-container::before {
+  content: "Feature Requests";
+  display: block;
+  background-color: var(--secondary);
+  color: var(--primary);
+  padding: 60px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  font-family: var(--heading-font-family);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  line-height: 1.5;
+  border-top: 10px solid #3AB54A;
+} */
+
+/* Don't hide the default custom banner */
+.ideas-portal-category .above-main-container-outlet.custom-banner {
+  display: block;
+}
+
 .ideas-portal-category .voting-category.list-container {
   max-width: 1110px;
 }
