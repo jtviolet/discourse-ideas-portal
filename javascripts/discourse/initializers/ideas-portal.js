@@ -55,6 +55,26 @@ export default apiInitializer("0.11.1", (api) => {
       // Add the class that enables CSS styling
       document.body.classList.add("ideas-portal-category");
       
+      // Update the hero banner text to match the category name
+      const mainContainer = document.querySelector("#main-container");
+      if (mainContainer) {
+        // Use getComputedStyle to get the CSS content value
+        const style = window.getComputedStyle(mainContainer, '::before');
+        if (style) {
+          // Create a style element to override the content property
+          let styleEl = document.getElementById('ideas-portal-custom-style');
+          if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'ideas-portal-custom-style';
+            document.head.appendChild(styleEl);
+          }
+          
+          // Set the content to the category name + Feature Requests
+          const categoryName = currentCategory.name;
+          styleEl.textContent = `.ideas-portal-category #main-container::before { content: "${categoryName} Feature Requests"; }`;
+        }
+      }
+      
       // 1. Change tag text to proper casing
       document.querySelectorAll('[data-tag-name]').forEach(el => {
         const tag = el.getAttribute('data-tag-name');
