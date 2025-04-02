@@ -90,28 +90,34 @@ export default apiInitializer("0.11.1", (api) => {
     // Use the discovery service instead of the deprecated controller
     const discoveryService = api.container.lookup("service:discovery");
     if (!discoveryService) {
+      console.log("Ideas Portal: Could not find discovery service");
       return null;
     }
     
-    const currentRoute = discoveryService?.route;
-    
-    // First check if we're on a category route
-    if (!currentRoute || !currentRoute.includes("category")) {
+    // Check if we're on a category route
+    if (!discoveryService.category) {
+      console.log("Ideas Portal: Not on a category page");
       return null;
     }
     
     // Get the current category from the discoveryService
-    const category = discoveryService?.category;
-    if (!category) {
+    const category = discoveryService.category;
+    const categoryId = category?.id;
+    
+    if (!categoryId) {
+      console.log("Ideas Portal: No category ID found");
       return null;
     }
+    
+    console.log(`Ideas Portal: Current category ID: ${categoryId}, Enabled categories: ${enabledCategories}`);
     
     // Check if this category is in our enabled list
-    if (!enabledCategories.includes(category.id)) {
+    if (!enabledCategories.includes(categoryId)) {
+      console.log(`Ideas Portal: Category ${categoryId} not in enabled list`);
       return null;
     }
     
-    // Return the category info
+    console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
     return category;
   };
 
@@ -128,6 +134,8 @@ export default apiInitializer("0.11.1", (api) => {
 
   // When page changes, apply our customizations
   api.onPageChange(() => {
+    console.log("Ideas Portal: Page changed");
+    
     // Get current category info
     const currentCategory = getCurrentCategoryInfo();
     
@@ -182,7 +190,12 @@ export default apiInitializer("0.11.1", (api) => {
     });
     
     // 2. Add tag filters if they don't exist yet
-    if (existingFilters) return;
+    if (existingFilters) {
+      console.log("Ideas Portal: Filter box already exists, not adding again");
+      return;
+    }
+    
+    console.log("Ideas Portal: Creating filter box for category", currentCategory.name);
     
     const categorySlug = currentCategory.slug;
     let parentSlug = "";
