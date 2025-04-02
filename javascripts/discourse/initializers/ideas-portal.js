@@ -33,7 +33,7 @@ export default apiInitializer("0.11.1", (api) => {
     
     // Create a container with fixed height to prevent expansion
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '150px'; // Fixed height
+    chartContainer.style.height = '200px'; // Increased height for radar/polar chart
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
@@ -58,14 +58,14 @@ export default apiInitializer("0.11.1", (api) => {
         // Get color based on status
         let color;
         switch(status) {
-          case 'new': color = '#007bff'; break;
-          case 'planned': color = '#17a2b8'; break;
-          case 'in-progress': color = '#fd7e14'; break;
-          case 'already-exists': color = '#6c757d'; break;
-          case 'under-review': color = '#20c997'; break;
-          case 'completed': color = '#28a745'; break;
-          case 'not-planned': color = '#dc3545'; break;
-          default: color = '#adb5bd';
+          case 'new': color = 'rgba(0, 123, 255, 0.7)'; break;
+          case 'planned': color = 'rgba(23, 162, 184, 0.7)'; break;
+          case 'in-progress': color = 'rgba(253, 126, 20, 0.7)'; break;
+          case 'already-exists': color = 'rgba(108, 117, 125, 0.7)'; break;
+          case 'under-review': color = 'rgba(32, 201, 151, 0.7)'; break;
+          case 'completed': color = 'rgba(40, 167, 69, 0.7)'; break;
+          case 'not-planned': color = 'rgba(220, 53, 69, 0.7)'; break;
+          default: color = 'rgba(173, 181, 189, 0.7)';
         }
         backgroundColors.push(color);
       }
@@ -80,42 +80,44 @@ export default apiInitializer("0.11.1", (api) => {
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = () => createChart(canvas, labels, data, backgroundColors);
+      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors);
       document.head.appendChild(script);
     } else {
-      createChart(canvas, labels, data, backgroundColors);
+      createPolarChart(canvas, labels, data, backgroundColors);
     }
   };
   
-  // Function to create the actual chart once Chart.js is loaded
-  const createChart = (canvas, labels, data, backgroundColors) => {
+  // Function to create a polar area chart once Chart.js is loaded
+  const createPolarChart = (canvas, labels, data, backgroundColors) => {
     if (!canvas) return;
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Create beautiful horizontal bar chart
+    // Create a unique polar area chart for idea status distribution
     window.ideasStatusChart = new Chart(ctx, {
-      type: 'bar',
+      type: 'polarArea', // More interesting than a bar chart!
       data: {
         labels: labels,
         datasets: [{
           data: data,
           backgroundColor: backgroundColors,
-          borderColor: backgroundColors,
+          borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
           borderWidth: 1,
-          borderRadius: 4,
-          barPercentage: 0.8,
-          categoryPercentage: 0.9
         }]
       },
       options: {
-        indexAxis: 'y',
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            display: false
+            position: 'right',
+            labels: {
+              font: {
+                size: 11
+              },
+              boxWidth: 15
+            }
           },
           tooltip: {
             backgroundColor: 'rgba(0,0,0,0.8)',
@@ -135,29 +137,22 @@ export default apiInitializer("0.11.1", (api) => {
           }
         },
         scales: {
-          y: {
-            grid: {
-              display: false,
-              drawBorder: false
-            },
+          r: {
             ticks: {
-              font: {
-                size: 11
-              }
-            }
-          },
-          x: {
-            grid: {
               display: false,
-              drawBorder: false
             },
-            ticks: {
-              display: false
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            },
+            angleLines: {
+              color: 'rgba(0,0,0,0.1)'
             }
           }
         },
         animation: {
-          duration: 500
+          duration: 800,
+          animateRotate: true,
+          animateScale: true
         }
       }
     });
