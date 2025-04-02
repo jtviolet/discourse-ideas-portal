@@ -8,10 +8,8 @@ export default apiInitializer("0.11.1", (api) => {
     .filter((id) => id);
 
   // Log enabled categories for debugging
-  console.log("Ideas Portal: Enabled for categories:", enabledCategories);
 
   if (!enabledCategories.length) {
-    console.log("Ideas Portal: No categories configured");
     return;
   }
 
@@ -19,24 +17,20 @@ export default apiInitializer("0.11.1", (api) => {
     // Use the discovery service instead of the deprecated controller
     const discoveryService = api.container.lookup("service:discovery");
     if (!discoveryService) {
-      console.log("Ideas Portal: Could not find discovery service");
       return null;
     }
     
     // Get the current category from the discoveryService
     const category = discoveryService.category;
     if (!category) {
-      console.log("Ideas Portal: No category found in discovery service");
       return null;
     }
     
     // Check if this category is in our enabled list
     if (!enabledCategories.includes(category.id)) {
-      console.log(`Ideas Portal: Category ${category.id} not in enabled list`);
       return null;
     }
     
-    console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
     return category;
   };
 
@@ -73,10 +67,8 @@ export default apiInitializer("0.11.1", (api) => {
       // If the current banner text doesn't already include the category name, append it
       if (!originalTitle.includes(currentCategory.name)) {
         bannerTitle.textContent = `${originalTitle} ${currentCategory.name}`;
-        console.log(`Ideas Portal: Updated banner title to "${bannerTitle.textContent}"`);
       }
     } else {
-      console.log("Ideas Portal: Custom banner title element not found");
     }
     
     // 1. Change tag text to proper casing
