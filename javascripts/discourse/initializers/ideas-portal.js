@@ -31,12 +31,19 @@ export default apiInitializer("0.11.1", (api) => {
     header.textContent = `${total} Total Ideas`;
     container.appendChild(header);
     
+    // Create a container with fixed height to prevent expansion
+    const chartContainer = document.createElement('div');
+    chartContainer.style.height = '150px'; // Fixed height
+    chartContainer.style.width = '100%';
+    chartContainer.style.position = 'relative';
+    container.appendChild(chartContainer);
+    
     // Create a canvas for the chart
     const canvas = document.createElement('canvas');
     canvas.id = 'ideas-status-chart';
-    canvas.style.height = '60px';
+    canvas.style.height = '100%';
     canvas.style.width = '100%';
-    container.appendChild(canvas);
+    chartContainer.appendChild(canvas);
     
     // Process data for Chart.js
     const labels = [];
@@ -64,6 +71,11 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
     
+    // Destroy existing chart if it exists
+    if (window.ideasStatusChart) {
+      window.ideasStatusChart.destroy();
+    }
+    
     // Load Chart.js from CDN if not already loaded
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
@@ -77,10 +89,13 @@ export default apiInitializer("0.11.1", (api) => {
   
   // Function to create the actual chart once Chart.js is loaded
   const createChart = (canvas, labels, data, backgroundColors) => {
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
     
     // Create beautiful horizontal bar chart
-    new Chart(ctx, {
+    window.ideasStatusChart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
