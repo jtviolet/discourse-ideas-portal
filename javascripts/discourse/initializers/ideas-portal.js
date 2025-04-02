@@ -23,7 +23,14 @@ export default apiInitializer("0.11.1", (api) => {
     
     // Calculate total
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-    if (total === 0) return; // No data to visualize
+    
+    // If no data, completely hide the container
+    if (total === 0) {
+      container.style.display = 'none';
+      return;
+    } else {
+      container.style.display = 'block';
+    }
     
     // Create the visualization header
     const header = document.createElement('div');
