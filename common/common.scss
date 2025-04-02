@@ -1,146 +1,24 @@
-/* Status visualization styling */
+/* Add this to common/common.scss */
 .ideas-portal-category .ideas-status-visualization {
   width: 100%;
   margin: 10px 0 20px;
   padding: 15px;
   background: var(--secondary);
   border-radius: 8px;
-  display: block;
-  visibility: visible;
+  display: block !important; /* Force display */
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   border: 1px solid var(--primary-low);
+  
+  /* Add styles to ensure it stays visible regardless of filtering */
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: none !important;
 }
 
-.ideas-portal-category .ideas-visualization-header {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--primary);
-  text-align: center;
-}
-
+/* Make sure the chart canvas stays visible */
 #ideas-status-chart {
   margin-top: 10px;
   max-height: 200px !important;
-}
-
-/* Tag filter styling */
-.ideas-portal-category .ideas-tag-filters {
-  margin: 16px 0;
-  padding: 16px;
-  border: 1px solid var(--primary-low);
-  background: var(--secondary);
-  border-radius: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  row-gap: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-
-.ideas-portal-category .ideas-filter-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0;
-  margin-right: 12px;
-  color: var(--primary);
-  width: 100%;
-}
-
-/* Custom colors per tag */
-.ideas-portal-category [data-tag-name="new"] {
-  background-color: #007bff;
-}
-.ideas-portal-category [data-tag-name="planned"] {
-  background-color: #17a2b8;
-}
-.ideas-portal-category [data-tag-name="in-progress"] {
-  background-color: #fd7e14;
-}
-.ideas-portal-category [data-tag-name="already-exists"] {
-  background-color: #6c757d;
-}
-.ideas-portal-category [data-tag-name="under-review"] {
-  background-color: #20c997;
-}
-.ideas-portal-category [data-tag-name="completed"] {
-  background-color: #28a745;
-}
-.ideas-portal-category [data-tag-name="not-planned"] {
-  background-color: #dc3545;
-}
-
-/* Tag styling */
-.ideas-portal-category [data-tag-name="new"],
-.ideas-portal-category [data-tag-name="planned"],
-.ideas-portal-category [data-tag-name="in-progress"],
-.ideas-portal-category [data-tag-name="already-exists"],
-.ideas-portal-category [data-tag-name="under-review"],
-.ideas-portal-category [data-tag-name="completed"],
-.ideas-portal-category [data-tag-name="not-planned"] {
-  display: inline-block;
-  padding: 4px 8px;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: white;
-  margin-right: 4px;
-}
-
-.ideas-portal-category .ideas-tag-filters .tag-filter {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  color: white;
-  text-decoration: none;
-}
-
-.ideas-portal-category .ideas-tag-filters .tag-filter-reset {
-  background-color: #adb5bd;
-}
-
-.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
-  opacity: 0.9;
-}
-
-/* Hide category breadcrumb */
-.ideas-portal-category .category-breadcrumb {
-  display: none;
-}
-
-/* Change topic list header */
-.ideas-portal-category .topic-list-header span:first-of-type::before {
-  content: "Ideas";
-}
-
-.ideas-portal-category .topic-list-header span:first-of-type {
-  color: transparent;
-  position: relative;
-}
-
-.ideas-portal-category .topic-list-header span:first-of-type::before {
-  position: absolute;
-  left: 0;
-  color: var(--primary-medium);
-}
-
-/* Hover animations */
-.ideas-portal-category .ideas-tag-filters .tag-filter {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
-  transform: scale(1.05);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Active filter styling */
-.ideas-portal-category .tag-filter.active {
-  box-shadow: 0 0 0 2px white inset;
-  transform: scale(1.05);
+  display: block !important;
+  visibility: visible !important;
 }
