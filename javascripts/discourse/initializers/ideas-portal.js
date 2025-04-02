@@ -13,99 +13,6 @@ export default apiInitializer("0.11.1", (api) => {
     console.log("Ideas Portal: No categories configured");
     return;
   }
-  
-  // Change tag text to proper casing instead of hyphenated
-  const tagMap = {
-    'new': 'New',
-    'under-review': 'Under Review',
-    'planned': 'Planned',
-    'in-progress': 'In Progress',
-    'completed': 'Completed',
-    'not-planned': 'Not Planned',
-    'already-exists': 'Already Exists',
-  };
-
-  // Function to create a polar area chart once Chart.js is loaded
-  const createPolarChart = (canvas, labels, data, backgroundColors) => {
-    if (!canvas) return;
-    
-    // Safety check for Chart existence
-    if (typeof Chart === 'undefined') {
-      console.log("Ideas Portal: Chart.js not loaded yet");
-      return;
-    }
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Destroy existing chart if it exists
-    if (window.ideasStatusChart) {
-      window.ideasStatusChart.destroy();
-    }
-    
-    // Create a unique polar area chart for idea status distribution
-    window.ideasStatusChart = new Chart(ctx, {
-      type: 'polarArea', // More interesting than a bar chart!
-      data: {
-        labels: labels,
-        datasets: [{
-          data: data,
-          backgroundColor: backgroundColors,
-          borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
-          borderWidth: 1,
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'right',
-            labels: {
-              font: {
-                size: 11
-              },
-              boxWidth: 15
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(0,0,0,0.8)',
-            titleFont: {
-              size: 13
-            },
-            bodyFont: {
-              size: 12
-            },
-            callbacks: {
-              label: function(context) {
-                const count = context.raw;
-                const percentage = Math.round((count / data.reduce((a, b) => a + b, 0)) * 100);
-                return `${count} ideas (${percentage}%)`;
-              }
-            }
-          }
-        },
-        scales: {
-          r: {
-            ticks: {
-              display: false,
-            },
-            grid: {
-              color: 'rgba(0,0,0,0.05)'
-            },
-            angleLines: {
-              color: 'rgba(0,0,0,0.1)'
-            }
-          }
-        },
-        animation: {
-          duration: 800,
-          animateRotate: true,
-          animateScale: true
-        }
-      }
-    });
-  };
 
   // Function to create a beautiful status visualization using Chart.js
   const createStatusVisualization = (statusCounts, container) => {
@@ -171,6 +78,11 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
     
+    // Destroy existing chart if it exists
+    if (window.ideasStatusChart) {
+      window.ideasStatusChart.destroy();
+    }
+    
     // Load Chart.js from CDN if not already loaded
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
@@ -180,6 +92,77 @@ export default apiInitializer("0.11.1", (api) => {
     } else {
       createPolarChart(canvas, labels, data, backgroundColors);
     }
+  };
+  
+  // Function to create a polar area chart once Chart.js is loaded
+  const createPolarChart = (canvas, labels, data, backgroundColors) => {
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    // Create a unique polar area chart for idea status distribution
+    window.ideasStatusChart = new Chart(ctx, {
+      type: 'polarArea', // More interesting than a bar chart!
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+          borderWidth: 1,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              font: {
+                size: 11
+              },
+              boxWidth: 15
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            titleFont: {
+              size: 13
+            },
+            bodyFont: {
+              size: 12
+            },
+            callbacks: {
+              label: function(context) {
+                const count = context.raw;
+                const percentage = Math.round((count / data.reduce((a, b) => a + b, 0)) * 100);
+                return `${count} ideas (${percentage}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          r: {
+            ticks: {
+              display: false,
+            },
+            grid: {
+              color: 'rgba(0,0,0,0.05)'
+            },
+            angleLines: {
+              color: 'rgba(0,0,0,0.1)'
+            }
+          }
+        },
+        animation: {
+          duration: 800,
+          animateRotate: true,
+          animateScale: true
+        }
+      }
+    });
   };
 
   // Helper function to get current category info using the discovery service
@@ -216,6 +199,17 @@ export default apiInitializer("0.11.1", (api) => {
     
     console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
     return category;
+  };
+
+  // Change tag text to proper casing instead of hyphenated
+  const tagMap = {
+    'new': 'New',
+    'under-review': 'Under Review',
+    'planned': 'Planned',
+    'in-progress': 'In Progress',
+    'completed': 'Completed',
+    'not-planned': 'Not Planned',
+    'already-exists': 'Already Exists',
   };
 
   // When page changes, apply our customizations
@@ -332,15 +326,10 @@ export default apiInitializer("0.11.1", (api) => {
       
       console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
       
-      // If we don't have any elements to count, use sample data for visualization
+      // If we don't have any elements to count, don't show the visualization
       if (topicElements.length === 0) {
-        // Sample data for visualization demonstration
-        statusCounts["new"] = 3;
-        statusCounts["planned"] = 2;
-        statusCounts["in-progress"] = 1;
-        statusCounts["completed"] = 2;
-        statusCounts["under-review"] = 1;
-        console.log("Ideas Portal: Using sample data for visualization");
+        console.log("Ideas Portal: No topics found, hiding visualization");
+        statusVisualization.style.display = 'none';
       } else {
         topicElements.forEach(topicEl => {
           const tagElements = topicEl.querySelectorAll("[data-tag-name]");
