@@ -16,52 +16,83 @@ export default apiInitializer("0.11.1", (api) => {
     return;
   }
 
-  // Helper function with extensive logging
-  const getCurrentCategoryInfo = () => {
-    const discoveryService = api.container.lookup("service:discovery");
-    
-    console.log("Ideas Portal: Discovery Service exists:", !!discoveryService);
-    
-    if (!discoveryService) {
-      console.error("Ideas Portal: Could not find discovery service");
-      return null;
-    }
-    
-    console.log("Ideas Portal: Current category from service:", discoveryService.category);
-    
-    if (!discoveryService.category) {
-      console.error("Ideas Portal: Not on a category page");
-      return null;
-    }
-    
-    const categoryId = discoveryService.category?.id;
-    
-    console.log("Ideas Portal: Current Category ID:", categoryId);
-    console.log("Ideas Portal: Enabled Categories:", enabledCategories);
-    
-    if (!categoryId || !enabledCategories.includes(categoryId)) {
-      console.error(`Ideas Portal: Category ${categoryId} not in enabled list`);
-      return null;
-    }
-    
-    return discoveryService.category;
+  // Change tag text to proper casing
+  const tagMap = {
+    'new': 'New',
+    'under-review': 'Under Review',
+    'planned': 'Planned',
+    'in-progress': 'In Progress',
+    'completed': 'Completed',
+    'not-planned': 'Not Planned',
+    'already-exists': 'Already Exists',
   };
 
-  // Comprehensive logging for page change
-  api.onPageChange(() => {
-    console.log("Ideas Portal: Page changed");
+  // Comprehensive category detection
+  const getCurrentCategoryInfo = () => {
+    const discoveryService = api.container.lookup("service:discovery");
+    const router = api.container.lookup("service:router");
+    
+    console.log("Ideas Portal: Discovery Service:", discoveryService);
+    console.log("Ideas Portal: Router:", router);
+    console.log("Ideas Portal: Current Route:", router?.currentRouteName);
+    
+    // Try multiple methods to get category
+    let category = null;
+    
+    if (discoveryService?.category) {
+      category = discoveryService.category;
+    } else if (router?.currentRoute?.params?.category) {
+      const siteCategories = api.container.lookup("site:main").categories;
+      category = siteCategories.find(
+        cat => cat.slug === router.currentRoute.params.category
+      );
+    }
+    
+    console.log("Ideas Portal: Detected Category:", category);
+    
+    if (!category) {
+      console.error("Ideas Portal: No category found");
+      return null;
+    }
+    
+    // Check if this category or its parent is in enabled categories
+    const categoryId = category.id;
+    const parentCategoryId = category.parent_category_id;
+    
+    console.log("Ideas Portal: Category ID:", categoryId);
+    console.log("Ideas Portal: Parent Category ID:", parentCategoryId);
+    console.log("Ideas Portal: Enabled Categories:", enabledCategories);
+    
+    if (enabledCategories.includes(categoryId) || 
+        (parentCategoryId && enabledCategories.includes(parentCategoryId))) {
+      return category;
+    }
+    
+    console.error(`Ideas Portal: Category ${categoryId} not in enabled list`);
+    return null;
+  };
+
+  // Full page change handler
+  api.onPageChange((url) => {
+    console.log("Ideas Portal: Page changed", url);
     
     const currentCategory = getCurrentCategoryInfo();
     
-    console.log("Ideas Portal: Current Category Details:", currentCategory);
-    
     if (!currentCategory) {
-      console.error("Ideas Portal: No valid category found");
       document.body.classList.remove("ideas-portal-category");
       return;
     }
     
     document.body.classList.add("ideas-portal-category");
-    console.log("Ideas Portal: Added ideas-portal-category class");
+    
+    // Change tag text to proper casing
+    document.querySelectorAll('[data-tag-name]').forEach(el => {
+      const tag = el.getAttribute('data-tag-name');
+      if (tag && tagMap[tag]) {
+        el.textContent = tagMap[tag];
+      }
+    });
+    
+    // Rest of your existing page change logic continues here...
   });
 });
