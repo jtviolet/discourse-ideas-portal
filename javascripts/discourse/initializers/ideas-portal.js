@@ -14,7 +14,7 @@ export default apiInitializer("0.11.1", (api) => {
     return;
   }
 
-  // Function to create the status visualization
+  // Function to create a beautiful status visualization using Chart.js
   const createStatusVisualization = (statusCounts, container) => {
     if (!container) return;
     
@@ -31,57 +31,120 @@ export default apiInitializer("0.11.1", (api) => {
     header.textContent = `${total} Total Ideas`;
     container.appendChild(header);
     
-    // Create the visualization bar container
-    const barContainer = document.createElement('div');
-    barContainer.className = 'ideas-visualization-bars';
-    container.appendChild(barContainer);
+    // Create a canvas for the chart
+    const canvas = document.createElement('canvas');
+    canvas.id = 'ideas-status-chart';
+    canvas.style.height = '60px';
+    canvas.style.width = '100%';
+    container.appendChild(canvas);
     
-    // Add bars for each status
+    // Process data for Chart.js
+    const labels = [];
+    const data = [];
+    const backgroundColors = [];
+    
     Object.keys(statusCounts).forEach(status => {
-      const count = statusCounts[status];
-      const percentage = total > 0 ? (count / total) * 100 : 0;
-      
-      // Skip statuses with zero count
-      if (count === 0) return;
-      
-      // Create bar element
-      const bar = document.createElement('div');
-      bar.className = 'ideas-visualization-bar';
-      bar.setAttribute('data-status', status);
-      bar.style.width = `${percentage}%`;
-      bar.title = `${tagMap[status]}: ${count} ideas (${percentage.toFixed(1)}%)`;
-      
-      barContainer.appendChild(bar);
+      if (statusCounts[status] > 0) {
+        labels.push(tagMap[status]);
+        data.push(statusCounts[status]);
+        
+        // Get color based on status
+        let color;
+        switch(status) {
+          case 'new': color = '#007bff'; break;
+          case 'planned': color = '#17a2b8'; break;
+          case 'in-progress': color = '#fd7e14'; break;
+          case 'already-exists': color = '#6c757d'; break;
+          case 'under-review': color = '#20c997'; break;
+          case 'completed': color = '#28a745'; break;
+          case 'not-planned': color = '#dc3545'; break;
+          default: color = '#adb5bd';
+        }
+        backgroundColors.push(color);
+      }
     });
     
-    // Create the legend
-    const legend = document.createElement('div');
-    legend.className = 'ideas-visualization-legend';
-    container.appendChild(legend);
+    // Load Chart.js from CDN if not already loaded
+    if (typeof Chart === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+      script.onload = () => createChart(canvas, labels, data, backgroundColors);
+      document.head.appendChild(script);
+    } else {
+      createChart(canvas, labels, data, backgroundColors);
+    }
+  };
+  
+  // Function to create the actual chart once Chart.js is loaded
+  const createChart = (canvas, labels, data, backgroundColors) => {
+    const ctx = canvas.getContext('2d');
     
-    // Add legend items
-    Object.keys(statusCounts).forEach(status => {
-      const count = statusCounts[status];
-      
-      // Skip statuses with zero count
-      if (count === 0) return;
-      
-      // Create legend item
-      const item = document.createElement('div');
-      item.className = 'ideas-visualization-legend-item';
-      
-      // Color dot
-      const dot = document.createElement('span');
-      dot.className = 'ideas-visualization-legend-dot';
-      dot.setAttribute('data-status', status);
-      item.appendChild(dot);
-      
-      // Text
-      const text = document.createElement('span');
-      text.textContent = `${tagMap[status]}: ${count}`;
-      item.appendChild(text);
-      
-      legend.appendChild(item);
+    // Create beautiful horizontal bar chart
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors,
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.8,
+          categoryPercentage: 0.9
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            titleFont: {
+              size: 13
+            },
+            bodyFont: {
+              size: 12
+            },
+            callbacks: {
+              label: function(context) {
+                const count = context.raw;
+                const percentage = Math.round((count / data.reduce((a, b) => a + b, 0)) * 100);
+                return `${count} ideas (${percentage}%)`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              font: {
+                size: 11
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              display: false
+            }
+          }
+        },
+        animation: {
+          duration: 500
+        }
+      }
     });
   };
 
