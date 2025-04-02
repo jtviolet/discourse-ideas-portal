@@ -24,12 +24,13 @@ export default apiInitializer("0.11.1", (api) => {
     // Calculate total
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
     
-    // If no data, completely hide the container
-    if (total === 0) {
+    // Check if we have any valid statuses with non-zero counts
+    const hasValidStatuses = Object.keys(statusCounts).some(status => statusCounts[status] > 0);
+    
+    // Hide the container if no valid statuses or no topics
+    if (!hasValidStatuses || total === 0) {
       container.style.display = 'none';
       return;
-    } else {
-      container.style.display = 'block';
     }
     
     // Create the visualization header
@@ -40,7 +41,7 @@ export default apiInitializer("0.11.1", (api) => {
     
     // Create a container with fixed height to prevent expansion
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '200px'; // Increased height for radar/polar chart
+    chartContainer.style.height = '200px';
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
@@ -57,14 +58,14 @@ export default apiInitializer("0.11.1", (api) => {
     const data = [];
     const backgroundColors = [];
     
-    Object.keys(statusCounts).forEach(status => {
-      if (statusCounts[status] > 0) {
-        labels.push(tagMap[status]);
-        data.push(statusCounts[status]);
+    Object.keys(statusCounts).forEach(tag => {
+      if (statusCounts[tag] > 0) {
+        labels.push(tagMap[tag]);
+        data.push(statusCounts[tag]);
         
-        // Get color based on status
+        // Get color based on status tag
         let color;
-        switch(status) {
+        switch(tag) {
           case 'new': color = 'rgba(0, 123, 255, 0.7)'; break;
           case 'planned': color = 'rgba(23, 162, 184, 0.7)'; break;
           case 'in-progress': color = 'rgba(253, 126, 20, 0.7)'; break;
@@ -103,7 +104,7 @@ export default apiInitializer("0.11.1", (api) => {
     
     // Create a unique polar area chart for idea status distribution
     window.ideasStatusChart = new Chart(ctx, {
-      type: 'polarArea', // More interesting than a bar chart!
+      type: 'polarArea',
       data: {
         labels: labels,
         datasets: [{
@@ -326,27 +327,17 @@ export default apiInitializer("0.11.1", (api) => {
       
       console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
       
-      // If we don't have any elements to count, use sample data for visualization
-      if (topicElements.length === 0) {
-        // Sample data for visualization demonstration
-        statusCounts["new"] = 3;
-        statusCounts["planned"] = 2;
-        statusCounts["in-progress"] = 1;
-        statusCounts["completed"] = 2;
-        statusCounts["under-review"] = 1;
-        console.log("Ideas Portal: Using sample data for visualization");
-      } else {
-        topicElements.forEach(topicEl => {
-          const tagElements = topicEl.querySelectorAll("[data-tag-name]");
-          
-          tagElements.forEach(tagEl => {
-            const tagName = tagEl.getAttribute("data-tag-name");
-            if (tagName && statusCounts.hasOwnProperty(tagName)) {
-              statusCounts[tagName]++;
-            }
-          });
+      // Prevent sample data if real topics exist
+      topicElements.forEach(topicEl => {
+        const tagElements = topicEl.querySelectorAll("[data-tag-name]");
+        
+        tagElements.forEach(tagEl => {
+          const tagName = tagEl.getAttribute("data-tag-name");
+          if (tagName && statusCounts.hasOwnProperty(tagName)) {
+            statusCounts[tagName]++;
+          }
         });
-      }
+      });
       
       console.log("Ideas Portal: Status counts:", statusCounts);
     } catch (e) {
