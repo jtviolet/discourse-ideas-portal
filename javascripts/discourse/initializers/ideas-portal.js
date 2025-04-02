@@ -21,16 +21,8 @@ export default apiInitializer("0.11.1", (api) => {
     // Clear the container
     container.innerHTML = '';
     
-    // Calculate total
+    // Calculate total (real count, not sample data)
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-    
-    // If no data, completely hide the container
-    if (total === 0) {
-      container.style.display = 'none';
-      return;
-    } else {
-      container.style.display = 'block';
-    }
     
     // Create the visualization header
     const header = document.createElement('div');
@@ -38,9 +30,21 @@ export default apiInitializer("0.11.1", (api) => {
     header.textContent = `${total} Total Ideas`;
     container.appendChild(header);
     
+    // If no data, show a message but don't add sample data
+    if (total === 0) {
+      const emptyMessage = document.createElement('div');
+      emptyMessage.className = 'ideas-empty-message';
+      emptyMessage.textContent = 'No ideas found in this category';
+      emptyMessage.style.textAlign = 'center';
+      emptyMessage.style.padding = '20px 0';
+      emptyMessage.style.color = 'var(--primary-medium)';
+      container.appendChild(emptyMessage);
+      return;
+    }
+    
     // Create a container with fixed height to prevent expansion
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '200px'; // Increased height for radar/polar chart
+    chartContainer.style.height = '200px';
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
@@ -299,6 +303,23 @@ export default apiInitializer("0.11.1", (api) => {
     container.className = 'ideas-tag-filters list-controls';
     container.id = 'ideas-portal-filters'; // Add a unique ID
     
+    const urlPath = window.location.pathname;
+    if (urlPath.includes('/tags/c/')) {
+      const pathParts = urlPath.split('/');
+      const tagName = pathParts[pathParts.length - 1];
+      
+      // Find and mark the active filter
+      const filterElements = container.querySelectorAll('.tag-filter');
+      filterElements.forEach(el => {
+        if (el.getAttribute('data-tag-name') === tagName) {
+          el.classList.add('active');
+        }
+      });
+    } else if (urlPath.includes(`/c/${parentSlug}${categorySlug}/${currentCategory.id}`)) {
+      // Mark "Show All" as active
+      resetFilter.classList.add('active');
+    }
+    
     // Add title
     const title = document.createElement('h3');
     title.className = 'ideas-filter-title';
@@ -332,27 +353,17 @@ export default apiInitializer("0.11.1", (api) => {
       
       console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
       
-      // If we don't have any elements to count, use sample data for visualization
-      if (topicElements.length === 0) {
-        // Sample data for visualization demonstration
-        statusCounts["new"] = 3;
-        statusCounts["planned"] = 2;
-        statusCounts["in-progress"] = 1;
-        statusCounts["completed"] = 2;
-        statusCounts["under-review"] = 1;
-        console.log("Ideas Portal: Using sample data for visualization");
-      } else {
-        topicElements.forEach(topicEl => {
-          const tagElements = topicEl.querySelectorAll("[data-tag-name]");
-          
-          tagElements.forEach(tagEl => {
-            const tagName = tagEl.getAttribute("data-tag-name");
-            if (tagName && statusCounts.hasOwnProperty(tagName)) {
-              statusCounts[tagName]++;
-            }
-          });
+      // Count each topic's tags
+      topicElements.forEach(topicEl => {
+        const tagElements = topicEl.querySelectorAll("[data-tag-name]");
+        
+        tagElements.forEach(tagEl => {
+          const tagName = tagEl.getAttribute("data-tag-name");
+          if (tagName && statusCounts.hasOwnProperty(tagName)) {
+            statusCounts[tagName]++;
+          }
         });
-      }
+      });
       
       console.log("Ideas Portal: Status counts:", statusCounts);
     } catch (e) {

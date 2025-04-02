@@ -138,3 +138,9 @@
   transform: scale(1.05);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
+
+/* Active filter styling */
+.ideas-portal-category .tag-filter.active {
+  box-shadow: 0 0 0 2px white inset;
+  transform: scale(1.05);
+}
