@@ -5,9 +5,13 @@
   padding: 15px;
   background: var(--secondary);
   border-radius: 8px;
-  display: block !important; /* Force display */
+  display: none !important; /* Force hidden by default */
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   border: 1px solid var(--primary-low);
+  visibility: hidden; /* Additional hiding mechanism */
+  opacity: 0; /* Fade out completely */
+  height: 0;
+  overflow: hidden;
 }
 
 .ideas-portal-category .ideas-visualization-header {
