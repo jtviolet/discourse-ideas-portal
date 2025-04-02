@@ -1,9 +1,50 @@
-.ideas-portal-category .voting-category.list-container {
-  max-width: 1110px;
+/* Status visualization styling */
+.ideas-portal-category .ideas-status-visualization {
+  width: 100%;
+  margin: 10px 0 20px;
+  padding: 15px;
+  background: var(--secondary);
+  border-radius: 8px;
+  display: block !important; /* Force display */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border: 1px solid var(--primary-low);
 }
 
-.ideas-portal-category .topic-list-bottom {
-  display: none;
+.ideas-portal-category .ideas-visualization-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: var(--primary);
+  text-align: center;
+}
+
+#ideas-status-chart {
+  margin-top: 10px;
+  max-height: 150px !important; /* Set a maximum height */
+}
+
+/* Tag filter styling */
+.ideas-portal-category .ideas-tag-filters {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--primary-low);
+  background: var(--secondary);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  row-gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.ideas-portal-category .ideas-filter-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  margin-right: 12px;
+  color: var(--primary);
+  width: 100%;
 }
 
 /* Custom colors per tag */
@@ -45,29 +86,6 @@
   text-transform: uppercase;
   color: white;
   margin-right: 4px;
-}
-
-/* Status filter bar styling */
-.ideas-portal-category .ideas-tag-filters {
-  margin: 16px 0;
-  padding: 16px;
-  border: 1px solid var(--primary-low);
-  background: var(--secondary);
-  border-radius: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  row-gap: 12px;
-}
-
-.ideas-portal-category .ideas-filter-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0;
-  margin-right: 12px;
-  color: var(--primary);
-  width: 100%;
 }
 
 .ideas-portal-category .ideas-tag-filters .tag-filter {
