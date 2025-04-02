@@ -273,14 +273,13 @@ export default apiInitializer("0.11.1", (api) => {
       console.error("Ideas Portal: Error counting statuses:", e);
     }
     
-    // Add status tag filters with counts
+    // Add status tag filters without counts
     Object.keys(tagMap).forEach(tag => {
       const filter = document.createElement('a');
       filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
       filter.className = 'tag-filter';
       filter.setAttribute('data-tag-name', tag);
-      filter.textContent = `${tagMap[tag]} (${statusCounts[tag]})`;
-      filter.setAttribute('data-count', statusCounts[tag]);
+      filter.textContent = tagMap[tag]; // Just the name without count
       container.appendChild(filter);
     });
     
