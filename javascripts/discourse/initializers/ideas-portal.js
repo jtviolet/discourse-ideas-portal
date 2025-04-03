@@ -111,9 +111,18 @@ export default apiInitializer("0.11.1", (api) => {
 
     const canvas = document.createElement('canvas');
     canvas.id = 'ideas-status-chart';
-    canvas.style.height = '100%';
     canvas.style.width = '100%';
-    chartContainer.appendChild(canvas);
+    canvas.style.height = '100%';
+    
+    const chartWrapper = document.createElement('div');
+    chartWrapper.style.width = '100%';
+    chartWrapper.style.maxWidth = '600px';
+    chartWrapper.style.margin = '0 auto';
+    chartWrapper.style.aspectRatio = '1'; // Maintains 1:1 aspect ratio
+    chartWrapper.appendChild(canvas);
+    
+    chartContainer.appendChild(chartWrapper);
+    
 
     const labels = [], data = [], backgroundColors = [];
 
