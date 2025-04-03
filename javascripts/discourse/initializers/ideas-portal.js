@@ -145,6 +145,8 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
   const createPolarChart = (canvas, labels, data, backgroundColors, parentCategoryName, total) => {
+    console.log("Parent Category Name:", parentCategoryName);
+    console.log("Total Ideas:", total);
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'} for ${parentCategoryName}`;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
