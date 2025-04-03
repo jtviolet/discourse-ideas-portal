@@ -8,6 +8,7 @@ export default apiInitializer("0.11.1", (api) => {
     : [];
 
   let currentCategoryId = null;
+  let staticChartRendered = false; // 🚨 Track if we've rendered the chart already
 
   const tagMap = {
     'new': 'New',
@@ -60,7 +61,7 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
   const createStatusVisualization = (statusCounts, container) => {
-    if (!container) return;
+    if (!container || staticChartRendered) return; // ✅ Don't re-render if already done
 
     container.innerHTML = '';
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
@@ -78,6 +79,7 @@ export default apiInitializer("0.11.1", (api) => {
       noIdeasMessage.style.fontStyle = 'italic';
       container.appendChild(noIdeasMessage);
       container.style.display = 'block';
+      staticChartRendered = true;
       return;
     } else {
       container.style.display = 'block';
@@ -121,11 +123,6 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
 
-    if (window.ideasStatusChart) {
-      window.ideasStatusChart.destroy();
-      window.ideasStatusChart = null;
-    }
-
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
@@ -134,6 +131,8 @@ export default apiInitializer("0.11.1", (api) => {
     } else {
       createPolarChart(canvas, labels, data, backgroundColors);
     }
+
+    staticChartRendered = true; // ✅ Flag as rendered
   };
 
   const createPolarChart = (canvas, labels, data, backgroundColors) => {
@@ -198,9 +197,6 @@ export default apiInitializer("0.11.1", (api) => {
     return enabledCategories.includes(category.id) ? category : null;
   };
 
-  // The rest of your original logic remains intact...
-  // We'll now merge this logic into the main page change hook.
-
   api.onPageChange(async () => {
     const currentCategory = getCurrentCategoryInfo();
     const existingFilters = document.querySelector('.ideas-tag-filters');
@@ -208,20 +204,13 @@ export default apiInitializer("0.11.1", (api) => {
     if (!currentCategory) {
       document.body.classList.remove("ideas-portal-category");
       currentCategoryId = null;
+      staticChartRendered = false; // 💡 Reset for future categories
       if (existingFilters) existingFilters.remove();
-      if (window.ideasStatusChart) {
-        window.ideasStatusChart.destroy();
-        window.ideasStatusChart = null;
-      }
       return;
     }
 
-    if (existingFilters) {
-      existingFilters.remove();
-    }
-    
+    if (existingFilters) existingFilters.remove();
     currentCategoryId = currentCategory.id;
-    
 
     document.body.classList.add("ideas-portal-category");
 
@@ -298,15 +287,8 @@ export default apiInitializer("0.11.1", (api) => {
   });
 
   api.cleanupStream(() => {
-    if (window.ideasPortalObserver) {
-      window.ideasPortalObserver.disconnect();
-      window.ideasPortalObserver = null;
-    }
-    if (window.ideasStatusChart) {
-      window.ideasStatusChart.destroy();
-      window.ideasStatusChart = null;
-    }
     document.body.classList.remove("ideas-portal-category");
+    staticChartRendered = false;
     const existingFilters = document.querySelector('.ideas-tag-filters');
     if (existingFilters) existingFilters.remove();
   });
