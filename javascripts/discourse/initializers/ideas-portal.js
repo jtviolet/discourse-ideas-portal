@@ -308,11 +308,16 @@ export default apiInitializer("0.11.1", (api) => {
       if (parentCategory) parentSlug = `${parentCategory.slug}/`;
     }
 
+    // Create the div to wrap all filter buttons
+    const filtersWrapper = document.createElement('div');
+    filtersWrapper.className = 'filter-buttons';
+
     const resetFilter = document.createElement('a');
     resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
     resetFilter.className = 'tag-filter tag-filter-reset';
     resetFilter.textContent = 'Show All';
     container.appendChild(resetFilter);
+    filtersWrapper.appendChild(resetFilter);
 
     Object.keys(tagMap).forEach(tag => {
       const filter = document.createElement('a');
@@ -320,8 +325,9 @@ export default apiInitializer("0.11.1", (api) => {
       filter.className = 'tag-filter';
       filter.setAttribute('data-tag-name', tag);
       filter.textContent = tagMap[tag];
-      container.appendChild(filter);
+      filtersWrapper.appendChild(filter);
     });
+    container.appendChild(filtersWrapper);
 
     const target = document.querySelector('.navigation-container');
     if (target) {
