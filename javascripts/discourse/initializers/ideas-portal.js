@@ -224,7 +224,7 @@ export default apiInitializer("0.11.1", (api) => {
         },
         animation: {
           easing: 'easeInBounce',
-          duration: 800,
+          duration: 200,
           animateRotate: true,
           animateScale: true
         }
