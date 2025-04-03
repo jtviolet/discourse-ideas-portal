@@ -244,21 +244,29 @@ export default apiInitializer("0.11.1", (api) => {
 
   api.onPageChange(async () => {
     
-    requestAnimationFrame(() => {
-      // Select the <li> element with class 'top'
-      let topListItem = document.querySelector("li.top");
+        // Use requestAnimationFrame to ensure the DOM is fully loaded
+        requestAnimationFrame(() => {
+          // Define an array of objects with the class and new text for each link
+          const navLinks = [
+            { className: "top", newText: "Most Active" },
+            { className: "votes", newText: "Most Voted" },
+          ];
 
-      // Ensure the list item exists
-      if (topListItem) {
-        // Select the <a> tag within the list item
-        let topLink = topListItem.querySelector("a");
+          navLinks.forEach(({ className, newText }) => {
+            // Select the <li> element with the specified class
+            const listItem = document.querySelector(`li.${className}`);
 
-        // Ensure the <a> tag exists and contains the text "Top"
-        if (topLink && topLink.textContent.trim() === "Top") {
-          topLink.textContent = "Most Active"; // Change "Popular" to your desired text
-        }
-      }
-    });
+            if (listItem) {
+              // Select the <a> tag within the list item
+              const link = listItem.querySelector("a");
+
+              // Ensure the <a> tag exists and contains the expected text
+              if (link && link.textContent.trim() === className.charAt(0).toUpperCase() + className.slice(1)) {
+                link.textContent = newText;
+              }
+            }
+          });
+        });
 
     const currentCategory = getCurrentCategoryInfo();
     const existingFilters = document.querySelector('.ideas-tag-filters');
