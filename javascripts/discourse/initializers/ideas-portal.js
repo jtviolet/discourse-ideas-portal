@@ -350,12 +350,15 @@ export default apiInitializer("0.11.1", (api) => {
 
     // MediaQueryList
   const darkModePreference = window.matchMedia("(prefers-color-scheme: dark)");
+  const lightModePreference = window.matchMedia("(prefers-color-scheme: light)");
 
   // recommended method for newer browsers: specify event-type as first argument
   darkModePreference.addEventListener("change", e => e.matches && activateDarkMode());
+  lightModePreference.addEventListener("change", e => e.matches && activateDarkMode());
 
   // Listen for changes in the color scheme and refresh the chart
   function activateDarkMode(){
+    console.log("The color scheme has changed. Reloading the chart...");
     if (window.ideasStatusChart) {
       window.ideasStatusChart.destroy();
       window.ideasStatusChart = null;
