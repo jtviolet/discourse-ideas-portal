@@ -188,3 +188,8 @@
   margin: 6px auto 0;
   border-radius: 1px;
 }
+
+.ideas-portal-category .tag-filter.active {
+  outline: 2px solid var(--tertiary);
+  outline-offset: 2px;
+}
