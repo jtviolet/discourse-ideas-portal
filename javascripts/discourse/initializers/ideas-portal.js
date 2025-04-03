@@ -244,13 +244,19 @@ export default apiInitializer("0.11.1", (api) => {
 
   api.onPageChange(async () => {
     
-    // Wait for the DOM to be ready
     requestAnimationFrame(() => {
-      let topButton = document.querySelector(".top");
+      // Select the <li> element with class 'top'
+      let topListItem = document.querySelector("li.top");
 
-      // Defensive check to make sure it exists
-      if (topButton && topButton.textContent.trim() === "Top") {
-        topButton.textContent = "Most Active"; // ← Change this to whatever you want
+      // Ensure the list item exists
+      if (topListItem) {
+        // Select the <a> tag within the list item
+        let topLink = topListItem.querySelector("a");
+
+        // Ensure the <a> tag exists and contains the text "Top"
+        if (topLink && topLink.textContent.trim() === "Top") {
+          topLink.textContent = "Popular"; // Change "Popular" to your desired text
+        }
       }
     });
 
