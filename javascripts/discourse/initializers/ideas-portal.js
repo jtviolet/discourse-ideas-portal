@@ -462,8 +462,7 @@ export default apiInitializer("0.11.1", (api) => {
         });
         
         if (shouldUpdate) {
-          console.log("Ideas Portal: Topic list updated, refreshing visualization");
-          updateStatusVisualization();
+          console.log("Ideas Portal: Topic list updated, NOT refreshing visualization");
         }
       });
       
