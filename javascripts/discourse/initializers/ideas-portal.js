@@ -411,13 +411,7 @@ export default apiInitializer("0.11.1", (api) => {
       
       // If we don't have any elements to count, use sample data for visualization
       if (topicElements.length === 0) {
-        // Sample data for visualization demonstration
-        statusCounts["new"] = 3;
-        statusCounts["planned"] = 2;
-        statusCounts["in-progress"] = 1;
-        statusCounts["completed"] = 2;
-        statusCounts["under-review"] = 1;
-        console.log("Ideas Portal: Using sample data for visualization");
+        return;
       } else {
         topicElements.forEach(topicEl => {
           const tagElements = topicEl.querySelectorAll("[data-tag-name]");
