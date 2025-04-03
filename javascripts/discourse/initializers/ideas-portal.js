@@ -174,7 +174,7 @@ export default apiInitializer("0.11.1", (api) => {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: false,
+        maintainAspectRatio: true,
         plugins: {
           legend: {
             display: false
