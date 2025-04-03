@@ -216,10 +216,12 @@ export default apiInitializer("0.11.1", (api) => {
       return;
     }
 
-    if (currentCategoryId !== currentCategory.id) {
-      currentCategoryId = currentCategory.id;
-      if (existingFilters) existingFilters.remove();
+    if (existingFilters) {
+      existingFilters.remove();
     }
+    
+    currentCategoryId = currentCategory.id;
+    
 
     document.body.classList.add("ideas-portal-category");
 
