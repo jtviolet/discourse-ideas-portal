@@ -96,6 +96,14 @@ export default apiInitializer("0.11.1", (api) => {
       return parentCategory ? parentCategory.name : null;
     };
 
+    // Then update your header creation code
+    const header = document.createElement('div');
+    header.className = 'ideas-visualization-header';
+
+    // Get parent category name
+    // {n} ideas for {parentCategoryName} or {n} ideas for Total
+    const parentCategoryName = getParentCategoryName();
+
     const chartContainer = document.createElement('div');
     chartContainer.style.height = '200px';
     chartContainer.style.width = '100%';
@@ -137,7 +145,7 @@ export default apiInitializer("0.11.1", (api) => {
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors);
+      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors, parentCategoryName, total);
       document.head.appendChild(script);
     } else {
       createPolarChart(canvas, labels, data, backgroundColors, parentCategoryName, total);
@@ -145,8 +153,6 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
   const createPolarChart = (canvas, labels, data, backgroundColors, parentCategoryName, total) => {
-    console.log("Parent Category Name:", parentCategoryName);
-    console.log("Total Ideas:", total);
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'} for ${parentCategoryName}`;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
