@@ -1,20 +1,19 @@
 import { withPluginApi } from "discourse/lib/plugin-api";
 import { ajax } from "discourse/lib/ajax";
-import { h } from "virtual-dom";
-import { create } from "virtual-dom";
 import { api } from "discourse/lib/api";
+import Chart from "chart.js/auto"; // Import Chart.js
 
 export default {
   setupComponent(attrs, component) {
     component.set("ideas", []);
     component.set("filteredIdeas", []);
     component.set("selectedStatus", "all");
-    component.set("statusCounts", {}); // Store status counts for the chart
+    component.set("statusCounts", {});
     component.set("newIdeaTitle", "");
     component.set("newIdeaText", "");
 
     component.loadIdeas = () => {
-      ajax("/latest.json?category=1") // Assuming category ID 1 for "Ideas"
+      ajax("/latest.json?category=1")
         .then((result) => {
           const ideas = result.topic_list.topics.map((topic) => ({
             id: topic.id,
@@ -23,12 +22,15 @@ export default {
             views: topic.views,
             posts_count: topic.posts_count,
             last_posted_at: topic.last_posted_at,
-            voted: false, // Add voted property
+            voted: false,
           }));
           component.set("ideas", ideas);
           component.set("filteredIdeas", ideas);
           component.updateStatusCounts(ideas);
           component.renderChart();
+        })
+        .catch((error) => {
+          console.error("Error loading ideas:", error);
         });
     };
 
@@ -72,44 +74,46 @@ export default {
       const data = Object.values(statusCounts);
 
       const ctx = document.getElementById("ideasChart").getContext("2d");
-      new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Ideas by Status",
-              data: data,
-              backgroundColor: [
-                "rgba(255, 99, 132, 0.2)",
-                "rgba(54, 162, 235, 0.2)",
-                "rgba(255, 206, 86, 0.2)",
-                "rgba(75, 192, 192, 0.2)",
-                "rgba(153, 102, 255, 0.2)",
-                "rgba(255, 159, 64, 0.2)",
-                "rgba(0, 128, 0, 0.2)",
-              ],
-              borderColor: [
-                "rgba(255, 99, 132, 1)",
-                "rgba(54, 162, 235, 1)",
-                "rgba(255, 206, 86, 1)",
-                "rgba(75, 192, 192, 1)",
-                "rgba(153, 102, 255, 1)",
-                "rgba(255, 159, 64, 1)",
-                "rgba(0, 128, 0, 1)",
-              ],
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
+      if (ctx) {
+        new Chart(ctx, { // Corrected Chart instantiation
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Ideas by Status",
+                data: data,
+                backgroundColor: [
+                  "rgba(255, 99, 132, 0.2)",
+                  "rgba(54, 162, 235, 0.2)",
+                  "rgba(255, 206, 86, 0.2)",
+                  "rgba(75, 192, 192, 0.2)",
+                  "rgba(153, 102, 255, 0.2)",
+                  "rgba(255, 159, 64, 0.2)",
+                  "rgba(0, 128, 0, 0.2)",
+                ],
+                borderColor: [
+                  "rgba(255, 99, 132, 1)",
+                  "rgba(54, 162, 235, 1)",
+                  "rgba(255, 206, 86, 1)",
+                  "rgba(75, 192, 192, 1)",
+                  "rgba(153, 102, 255, 1)",
+                  "rgba(255, 159, 64, 1)",
+                  "rgba(0, 128, 0, 1)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
             },
           },
-        },
-      });
+        });
+      }
     };
 
     component.createIdea = () => {
@@ -125,7 +129,7 @@ export default {
         .then((result) => {
           component.set("newIdeaTitle", "");
           component.set("newIdeaText", "");
-          component.loadIdeas(); // Reload ideas after creation
+          component.loadIdeas();
         })
         .catch((error) => {
           console.error("Error creating idea:", error);
@@ -134,8 +138,6 @@ export default {
     };
 
     component.voteIdea = (idea) => {
-      // Implement voting logic here (e.g., using custom fields or reactions)
-      // Update idea.voted and reloadIdeas
       idea.voted = true;
       component.loadIdeas();
     };
