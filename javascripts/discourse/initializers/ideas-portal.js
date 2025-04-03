@@ -154,16 +154,7 @@ export default apiInitializer("0.11.1", (api) => {
 
   const createPolarChart = (canvas, labels, data, backgroundColors, parentCategoryName, total) => {
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'} for ${parentCategoryName}`;
-    const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    var primaryColor = null;
-
-    if (isDarkMode) {
-      primaryColor = getComputedStyle(canvas).getPropertyValue("--secondary");
-      console.log('Dark mode is preferred');
-    } else {
-      primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
-      console.log('Light mode is preferred or no preference set');
-    }
+    const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
   
