@@ -154,7 +154,7 @@ export default apiInitializer("0.11.1", (api) => {
 
   const createPolarChart = (canvas, labels, data, backgroundColors, parentCategoryName, total) => {
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'} for ${parentCategoryName}`;
-    const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
+    const primaryColor = getComputedStyle(canvas).getPropertyValue("--highlight");
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
   
