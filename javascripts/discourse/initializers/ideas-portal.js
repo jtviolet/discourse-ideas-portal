@@ -216,7 +216,7 @@ export default apiInitializer("0.11.1", (api) => {
               centerPointLabels: true,
               color: returnPrimaryColor(),
               font: {
-                size: 14
+                size: 18
               }
             }
           }
