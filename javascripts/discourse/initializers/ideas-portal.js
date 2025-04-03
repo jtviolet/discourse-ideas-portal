@@ -101,10 +101,9 @@ export default apiInitializer("0.11.1", (api) => {
     header.className = 'ideas-visualization-header';
 
     // Get parent category name
+    // {n} ideas for {parentCategoryName} or {n} ideas for Total
     const parentCategoryName = getParentCategoryName();
-    const displayCategoryName = parentCategoryName || "Total";
-
-    header.textContent = `${total} ${displayCategoryName} Ideas`;
+    header.textContent = `${total} ideas for ${displayCategoryName}`;
     container.appendChild(header);
 
     const chartContainer = document.createElement('div');
