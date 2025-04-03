@@ -210,7 +210,7 @@ export default apiInitializer("0.11.1", (api) => {
             ticks: {
               display: false
             },
-            grid: { drawOnChartArea: false },
+            grid: { display: false },
             angleLines: { color: returnPrimaryColor() },
             pointLabels: {
               display: true,
