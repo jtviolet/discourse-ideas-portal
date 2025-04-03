@@ -85,7 +85,20 @@ export default apiInitializer("0.11.1", (api) => {
 
     const header = document.createElement('div');
     header.className = 'ideas-visualization-header';
-    header.textContent = `${total} Total Ideas`;
+    
+    // Get the parent category name if available
+    let parentCategoryName = "";
+    if (currentCategory && currentCategory.parent_category_id) {
+      const siteCategories = api.container.lookup("site:main").categories;
+      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+      if (parentCategory) {
+        parentCategoryName = parentCategory.name;
+      }
+    }
+    
+    // Use the parent category name in the header text, or fallback to "Total" if no parent
+    const displayCategoryName = parentCategoryName || "Total";
+    header.textContent = `${total} ${displayCategoryName} Ideas`;
     container.appendChild(header);
 
     const chartContainer = document.createElement('div');
@@ -163,8 +176,7 @@ export default apiInitializer("0.11.1", (api) => {
             }
           },
           title: {
-            display: true,
-            text: 'Chart.js Polar Area Chart With Centered Point Labels'
+            display: false
           },
           tooltip: {
             backgroundColor: 'rgba(0,0,0,0.8)',
