@@ -172,11 +172,6 @@
   cursor: pointer;
 }
 
-.ideas-portal-category .filter-buttons [data-tag-name] {
-  background-color: var(--primary); // fallback if missing
-  color: white;
-}
-
 .ideas-portal-category .filter-buttons [data-tag-name]:hover {
   filter: brightness(1.1);
   transform: scale(1.05);
