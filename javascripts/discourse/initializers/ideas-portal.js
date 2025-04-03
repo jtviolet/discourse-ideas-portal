@@ -243,23 +243,6 @@ export default apiInitializer("0.11.1", (api) => {
   // We'll now merge this logic into the main page change hook.
 
   api.onPageChange(async () => {
-
-    const maybeLabelBellButton = () => {
-      const bellBtn = document.querySelector('.tracking.dropdown-toggle.btn-icon');
-    
-      if (bellBtn && !bellBtn.classList.contains('has-subscribe-label')) {
-        const label = document.createElement('span');
-        label.textContent = 'Subscribe';
-        label.style.marginLeft = '6px'; // spacing between icon and text
-    
-        bellBtn.appendChild(label);
-        bellBtn.classList.add('has-subscribe-label');
-      }
-    };
-    
-    // Run once after page load or nav change
-    maybeLabelBellButton();
-    
         // Use requestAnimationFrame to ensure the DOM is fully loaded
         requestAnimationFrame(() => {
           // Define an array of objects with the class and new text for each link
