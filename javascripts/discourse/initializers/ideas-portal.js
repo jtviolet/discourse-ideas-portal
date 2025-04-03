@@ -348,8 +348,14 @@ export default apiInitializer("0.11.1", (api) => {
     if (existingFilters) existingFilters.remove();
   });
 
+    // MediaQueryList
+  const darkModePreference = window.matchMedia("(prefers-color-scheme: dark)");
+
+  // recommended method for newer browsers: specify event-type as first argument
+  darkModePreference.addEventListener("change", e => e.matches && activateDarkMode());
+
   // Listen for changes in the color scheme and refresh the chart
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+  function activateDarkMode(){
     if (window.ideasStatusChart) {
       window.ideasStatusChart.destroy();
       window.ideasStatusChart = null;
@@ -368,10 +374,5 @@ export default apiInitializer("0.11.1", (api) => {
         });
       }
     }
-  });
-
-  // Log color scheme changes
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
-    console.log('Color scheme changed:', event.matches ? 'Dark mode' : 'Light mode');
-  });
+  }
 });
