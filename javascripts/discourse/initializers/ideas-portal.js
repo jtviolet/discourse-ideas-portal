@@ -347,4 +347,26 @@ export default apiInitializer("0.11.1", (api) => {
     const existingFilters = document.querySelector('.ideas-tag-filters');
     if (existingFilters) existingFilters.remove();
   });
+
+  // Listen for changes in the color scheme and refresh the chart
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    if (window.ideasStatusChart) {
+      window.ideasStatusChart.destroy();
+      window.ideasStatusChart = null;
+    }
+
+    // Recreate the chart if the container and data are available
+    const statusVisualization = document.querySelector('.ideas-status-visualization');
+    if (statusVisualization) {
+      const currentCategory = getCurrentCategoryInfo();
+      if (currentCategory) {
+        fetchAllTopicsInCategory(currentCategory.id).then((topics) => {
+          const statusCounts = buildStatusCounts(topics);
+          createStatusVisualization(statusCounts, statusVisualization);
+        }).catch((e) => {
+          console.error("Ideas Portal: Failed to reload chart on color scheme change:", e);
+        });
+      }
+    }
+  });
 });
