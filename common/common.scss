@@ -151,3 +151,25 @@
   transform: scale(1.05);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
+
+.ideas-tag-filters {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+
+  .tag-filter {
+    margin: 0.2em;
+  }
+
+  .tag-filter-reset {
+    font-weight: bold;
+  }
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5em;
+  }
+}
