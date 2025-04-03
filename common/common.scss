@@ -143,6 +143,16 @@
   color: var(--primary-medium);
 }
 
+/* Hover animations */
+.ideas-portal-category .ideas-tag-filters .tag-filter {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
 .ideas-portal-category .filter-buttons {
   display: flex;
   flex-wrap: wrap;
@@ -155,32 +165,4 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.08);
   margin: 20px auto 0 auto;
   max-width: 800px;
-}
-
-.ideas-portal-category .filter-buttons .tag-filter {
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  text-align: center;
-  background-color: #444;
-  transition: all 0.15s ease;
-  border: none;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  cursor: pointer;
-}
-
-.ideas-portal-category .filter-buttons [data-tag-name]:hover {
-  filter: brightness(1.1);
-  transform: scale(1.05);
-}
-
-.ideas-portal-category .filter-buttons .tag-filter:hover {
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
-  transform: scale(1.05);
-}
-
-.ideas-portal-category .filter-buttons .tag-filter:active {
-  transform: scale(0.98);
 }
