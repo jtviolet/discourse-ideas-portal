@@ -102,7 +102,6 @@ export default apiInitializer("0.11.1", (api) => {
 
     // Get parent category name
     // {n} ideas for {parentCategoryName} or {n} ideas for Total
-    const parentCategoryName = getParentCategoryName();
 
     const chartContainer = document.createElement('div');
     chartContainer.style.height = '400px';
@@ -145,15 +144,15 @@ export default apiInitializer("0.11.1", (api) => {
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors, parentCategoryName, total);
+      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors, total);
       document.head.appendChild(script);
     } else {
-      createPolarChart(canvas, labels, data, backgroundColors, parentCategoryName, total);
+      createPolarChart(canvas, labels, data, backgroundColors, total);
     }
   };
 
-  const createPolarChart = (canvas, labels, data, backgroundColors, parentCategoryName, total) => {
-    const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'} for ${parentCategoryName}`;
+  const createPolarChart = (canvas, labels, data, backgroundColors, total) => {
+    const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'}`;
     const returnPrimaryColor = () => {
       const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
       return primaryColor;
