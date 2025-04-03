@@ -290,22 +290,20 @@ export default apiInitializer("0.11.1", (api) => {
 
     // Add status tag filters and count topics with each tag
     const statusCounts = {};
-
-    // Initialize counts to zero
-    Object.keys(tagMap).forEach(tag => {
-      statusCounts[tag] = 0;
-    });
+    let topicList = [];
 
     try {
-      // Get the topic list model from the route
-      const topicListController = api.container.lookup("controller:discovery/topics");
-      const topicList = topicListController?.model; // Use optional chaining
+      // Get the topic list from the discovery service
+        if (discoveryService) {
+            topicList = discoveryService.topics || [];
+        }
 
-      console.log("Ideas Portal: Topic list model:", topicList);
+
+      console.log("Ideas Portal: Topic list:", topicList);
 
       // If we have a topic list, count the tags on each topic
-      if (topicList && topicList.topics) {
-        topicList.topics.forEach(topic => {
+      if (topicList) {
+        topicList.forEach(topic => {
           topic.tags?.forEach(tag => {
             if (statusCounts.hasOwnProperty(tag)) {
               statusCounts[tag]++;
@@ -331,7 +329,7 @@ export default apiInitializer("0.11.1", (api) => {
     } else {
       //if the chart is already initialized, just update the topic count.
       const header = document.querySelector('.ideas-visualization-header');
-      if(header){
+      if (header) {
         const total = Object.values(initialStatusCounts).reduce((sum, count) => sum + count, 0);
         header.textContent = `${total} Total Ideas`;
       }
