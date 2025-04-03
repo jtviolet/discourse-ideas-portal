@@ -83,21 +83,27 @@ export default apiInitializer("0.11.1", (api) => {
       container.style.display = 'block';
     }
 
-    const header = document.createElement('div');
-    header.className = 'ideas-visualization-header';
-    
-    // Get the parent category name if available
-    let parentCategoryName = "";
-    if (currentCategory && currentCategory.parent_category_id) {
+    // Function to get parent category name
+    const getParentCategoryName = () => {
+      const currentCategory = getCurrentCategoryInfo();
+      if (!currentCategory || !currentCategory.parent_category_id) {
+        return null;
+      }
+      
       const siteCategories = api.container.lookup("site:main").categories;
       const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-      if (parentCategory) {
-        parentCategoryName = parentCategory.name;
-      }
-    }
-    
-    // Use the parent category name in the header text, or fallback to "Total" if no parent
+      
+      return parentCategory ? parentCategory.name : null;
+    };
+
+    // Then update your header creation code
+    const header = document.createElement('div');
+    header.className = 'ideas-visualization-header';
+
+    // Get parent category name
+    const parentCategoryName = getParentCategoryName();
     const displayCategoryName = parentCategoryName || "Total";
+
     header.textContent = `${total} ${displayCategoryName} Ideas`;
     container.appendChild(header);
 
