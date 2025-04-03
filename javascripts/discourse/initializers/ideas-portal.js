@@ -173,11 +173,7 @@ export default apiInitializer("0.11.1", (api) => {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'right',
-            labels: {
-              font: { size: 11 },
-              boxWidth: 15
-            }
+            display: false
           },
           title: {
             display: true,
