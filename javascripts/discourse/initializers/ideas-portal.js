@@ -6,11 +6,8 @@ export default apiInitializer("0.11.1", (api) => {
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
 
-  // Log enabled categories for debugging!
-  console.log("Ideas Portal: Enabled for categories:", enabledCategories);
 
   if (!enabledCategories.length) {
-    console.log("Ideas Portal: No categories configured");
     return;
   }
 
@@ -170,13 +167,11 @@ export default apiInitializer("0.11.1", (api) => {
     // Use the discovery service instead of the deprecated controller
     const discoveryService = api.container.lookup("service:discovery");
     if (!discoveryService) {
-      console.log("Ideas Portal: Could not find discovery service");
       return null;
     }
 
     // Check if we're on a category route
     if (!discoveryService.category) {
-      console.log("Ideas Portal: Not on a category page");
       return null;
     }
 
@@ -185,19 +180,14 @@ export default apiInitializer("0.11.1", (api) => {
     const categoryId = category?.id;
 
     if (!categoryId) {
-      console.log("Ideas Portal: No category ID found");
       return null;
     }
-
-    console.log(`Ideas Portal: Current category ID: ${categoryId}, Enabled categories: ${enabledCategories}`);
 
     // Check if this category is in our enabled list
     if (!enabledCategories.includes(categoryId)) {
-      console.log(`Ideas Portal: Category ${categoryId} not in enabled list`);
       return null;
     }
 
-    console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
     return category;
   };
 
@@ -216,7 +206,6 @@ export default apiInitializer("0.11.1", (api) => {
 
   // When page changes, apply our customizations
   api.onPageChange(() => {
-    console.log("Ideas Portal: Page changed");
 
     // Get current category info
     const currentCategory = getCurrentCategoryInfo();
@@ -231,7 +220,6 @@ export default apiInitializer("0.11.1", (api) => {
       // Clean up any existing filter elements if we're not in an ideas category
       if (existingFilters) {
         existingFilters.remove();
-        console.log("Ideas Portal: Removed filter box when leaving ideas category");
       }
       return;
     }
@@ -259,7 +247,6 @@ export default apiInitializer("0.11.1", (api) => {
       if (parentName && !originalTitle.includes(currentCategory.name)) {
         // Set title to "Parent Category"
         bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
-        console.log(`Ideas Portal: Updated banner title to "${bannerTitle.textContent}"`);
       }
     }
 
@@ -273,11 +260,8 @@ export default apiInitializer("0.11.1", (api) => {
 
     // 2. Add tag filters if they don't exist yet  
     if (existingFilters) {
-      console.log("Ideas Portal: Filter box already exists, not adding again");
       return;
     }
-
-    console.log("Ideas Portal: Creating filter box for category", currentCategory.name);
 
     const categorySlug = currentCategory.slug;
     let parentSlug = "";
@@ -327,8 +311,6 @@ export default apiInitializer("0.11.1", (api) => {
       const topicListController = api.container.lookup("controller:discovery/topics");
       const topicList = topicListController.get("model");
 
-      console.log("Ideas Portal: Topic list model:", topicList);
-
       // If we have a topic list, count the tags on each topic
       if (topicList && topicList.topics) {
         topicList.topics.forEach(topic => {
@@ -340,7 +322,6 @@ export default apiInitializer("0.11.1", (api) => {
         });
       }
 
-      console.log("Ideas Portal: Status counts:", statusCounts);
     } catch (e) {
       console.error("Ideas Portal: Error counting statuses:", e);
     }
@@ -373,7 +354,6 @@ export default apiInitializer("0.11.1", (api) => {
         const viz = document.querySelector('.ideas-status-visualization');
         if (viz) {
           viz.style.display = 'block';
-          console.log("Ideas Portal: Visualization container is visible");
         }
       }, 100);
     }
