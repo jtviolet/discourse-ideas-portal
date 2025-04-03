@@ -6,6 +6,7 @@ export default apiInitializer("1.8.0", (api) => {
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
 
+
   if (!enabledCategories.length) {
     return;
   }
@@ -36,7 +37,7 @@ export default apiInitializer("1.8.0", (api) => {
 
     // Create a container with fixed height to prevent expansion
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '200px';
+    chartContainer.style.height = '200px'; // Increased height for radar/polar chart
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
@@ -99,7 +100,7 @@ export default apiInitializer("1.8.0", (api) => {
 
     // Create a unique polar area chart for idea status distribution
     window.ideasStatusChart = new Chart(ctx, {
-      type: 'polarArea',
+      type: 'polarArea', // More interesting than a bar chart!
       data: {
         labels: labels,
         datasets: [{
@@ -163,25 +164,34 @@ export default apiInitializer("1.8.0", (api) => {
 
   // Helper function to get current category info using the discovery service
   const getCurrentCategoryInfo = () => {
+    // Use the discovery service instead of the deprecated controller
     const discoveryService = api.container.lookup("service:discovery");
     if (!discoveryService) {
       return null;
     }
+
+    // Check if we're on a category route
     if (!discoveryService.category) {
       return null;
     }
+
+    // Get the current category from the discoveryService
     const category = discoveryService.category;
     const categoryId = category?.id;
+
     if (!categoryId) {
       return null;
     }
+
+    // Check if this category is in our enabled list
     if (!enabledCategories.includes(categoryId)) {
       return null;
     }
+
     return category;
   };
 
-  // Change tag text to proper casing instead of hyphenated
+  // Change tag text to proper casing instead of hyphenated 
   const tagMap = {
     'new': 'New',
     'under-review': 'Under Review',
@@ -196,6 +206,8 @@ export default apiInitializer("1.8.0", (api) => {
 
   // When page changes, apply our customizations
   api.onPageChange(() => {
+
+    // Get current category info
     const currentCategory = getCurrentCategoryInfo();
 
     // Find any existing ideas-tag-filters
@@ -204,6 +216,8 @@ export default apiInitializer("1.8.0", (api) => {
     // Remove ideas-portal-category class from body if we're not in an enabled category
     if (!currentCategory) {
       document.body.classList.remove("ideas-portal-category");
+
+      // Clean up any existing filter elements if we're not in an ideas category
       if (existingFilters) {
         existingFilters.remove();
       }
@@ -216,7 +230,10 @@ export default apiInitializer("1.8.0", (api) => {
     // Find the custom banner title element
     const bannerTitle = document.querySelector(".custom-banner__title");
     if (bannerTitle) {
+      // Get the current title text (this is usually the parent category name)
       const originalTitle = bannerTitle.textContent.trim();
+
+      // Get parent category name if available
       let parentName = "";
       if (currentCategory.parent_category_id) {
         const siteCategories = api.container.lookup("site:main").categories;
@@ -225,12 +242,15 @@ export default apiInitializer("1.8.0", (api) => {
           parentName = parentCategory.name;
         }
       }
+
+      // If we have a parent and the title doesn't already include both parent and category names
       if (parentName && !originalTitle.includes(currentCategory.name)) {
+        // Set title to "Parent Category"
         bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
       }
     }
 
-    // Change tag text to proper casing
+    // 1. Change tag text to proper casing
     document.querySelectorAll('[data-tag-name]').forEach(el => {
       const tag = el.getAttribute('data-tag-name');
       if (tag && tagMap[tag]) {
@@ -238,7 +258,7 @@ export default apiInitializer("1.8.0", (api) => {
       }
     });
 
-    // Add tag filters if they don't exist yet
+    // 2. Add tag filters if they don't exist yet  
     if (existingFilters) {
       return;
     }
@@ -246,6 +266,7 @@ export default apiInitializer("1.8.0", (api) => {
     const categorySlug = currentCategory.slug;
     let parentSlug = "";
 
+    // Get parent category info if available 
     if (currentCategory.parent_category_id) {
       const siteCategories = api.container.lookup("site:main").categories;
       const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
@@ -276,20 +297,23 @@ export default apiInitializer("1.8.0", (api) => {
     resetFilter.textContent = 'Show All';
     container.appendChild(resetFilter);
 
-    // Initialize counts to zero
+    // Add status tag filters and count topics with each tag
     const statusCounts = {};
+
+    // Initialize counts to zero
     Object.keys(tagMap).forEach(tag => {
       statusCounts[tag] = 0;
     });
 
+    // Count topics with each tag
     try {
-      // Get the topic list from the discovery service
-      const discoveryService = api.container.lookup("service:discovery");
-      const topicList = discoveryService?.topics || [];
+      // Get the topic list model from the route
+      const topicListController = api.container.lookup("controller:discovery/topics");
+      const topicList = topicListController.get("model");
 
       // If we have a topic list, count the tags on each topic
-      if (topicList) {
-        topicList.forEach(topic => {
+      if (topicList && topicList.topics) {
+        topicList.topics.forEach(topic => {
           topic.tags?.forEach(tag => {
             if (statusCounts.hasOwnProperty(tag)) {
               statusCounts[tag]++;
@@ -297,6 +321,7 @@ export default apiInitializer("1.8.0", (api) => {
           });
         });
       }
+
     } catch (e) {
       console.error("Ideas Portal: Error counting statuses:", e);
     }
@@ -312,7 +337,7 @@ export default apiInitializer("1.8.0", (api) => {
       filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
       filter.className = 'tag-filter';
       filter.setAttribute('data-tag-name', tag);
-      filter.textContent = tagMap[tag];
+      filter.textContent = tagMap[tag]; // Just the name without count
       container.appendChild(filter);
     });
 
