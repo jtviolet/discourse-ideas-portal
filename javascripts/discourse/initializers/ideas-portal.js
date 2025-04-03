@@ -250,7 +250,10 @@ export default apiInitializer("0.11.1", (api) => {
 
     // Render filters and chart
     const container = document.createElement('div');
-
+    container.className = 'ideas-tag-filters list-controls';
+    const title = document.createElement('h3');
+    title.className = 'ideas-filter-title';
+    container.appendChild(title);
 
     const statusVisualization = document.createElement('div');
     statusVisualization.className = 'ideas-status-visualization';
