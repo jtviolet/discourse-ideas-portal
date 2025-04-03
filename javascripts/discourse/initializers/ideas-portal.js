@@ -250,7 +250,6 @@ export default apiInitializer("0.11.1", (api) => {
             { className: "top", newText: "Most Active" },
             { className: "votes", newText: "Most Voted" },
             { className: "latest", newText: "Recently Active" },
-
           ];
 
           navLinks.forEach(({ className, newText }) => {
