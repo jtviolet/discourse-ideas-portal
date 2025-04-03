@@ -255,7 +255,7 @@ export default apiInitializer("0.11.1", (api) => {
 
         // Ensure the <a> tag exists and contains the text "Top"
         if (topLink && topLink.textContent.trim() === "Top") {
-          topLink.textContent = "Popular"; // Change "Popular" to your desired text
+          topLink.textContent = "Most Active"; // Change "Popular" to your desired text
         }
       }
     });
