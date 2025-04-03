@@ -124,14 +124,14 @@ export default apiInitializer("0.11.1", (api) => {
         data.push(statusCounts[status]);
         let color;
         switch(status) {
-          case 'new': color = 'rgba(0, 123, 255, 0.7)'; break;
-          case 'planned': color = 'rgba(23, 162, 184, 0.7)'; break;
-          case 'in-progress': color = 'rgba(253, 126, 20, 0.7)'; break;
-          case 'already-exists': color = 'rgba(108, 117, 125, 0.7)'; break;
-          case 'under-review': color = 'rgba(32, 201, 151, 0.7)'; break;
-          case 'completed': color = 'rgba(40, 167, 69, 0.7)'; break;
-          case 'not-planned': color = 'rgba(220, 53, 69, 0.7)'; break;
-          default: color = 'rgba(173, 181, 189, 0.7)';
+          case 'new': color = '#007bff'; break;
+          case 'planned': color = '#17a2b8'; break;
+          case 'in-progress': color = '#fd7d14'; break;
+          case 'already-exists': color = '#6c757d'; break;
+          case 'under-review': color = '#20c997'; break;
+          case 'completed': color = '#28a745'; break;
+          case 'not-planned': color = '#dc3545'; break;
+          default: color = '#adb5bd';
         }
         backgroundColors.push(color);
       }
@@ -164,7 +164,7 @@ export default apiInitializer("0.11.1", (api) => {
         datasets: [{
           data,
           backgroundColor: backgroundColors,
-          borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
+          borderColor: backgroundColors.map(c => c.replace('1', '1')),
           borderWidth: 1,
         }]
       },
