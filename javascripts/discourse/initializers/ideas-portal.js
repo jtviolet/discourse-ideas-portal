@@ -266,11 +266,12 @@ export default apiInitializer("0.11.1", (api) => {
           });
         }
       });
-  
-  console.log("Ideas Portal: Status counts:", statusCounts);
-} catch (e) {
-  console.error("Ideas Portal: Error counting statuses:", e);
-}
+      
+      console.log("Ideas Portal: Status counts:", statusCounts);
+    } catch (e) {
+      console.error("Ideas Portal: Error counting statuses:", e);
+    }
+  };
 
   // When page changes, apply our customizations
   api.onPageChange(() => {
