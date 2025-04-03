@@ -161,25 +161,3 @@
   background: var(--secondary);
   margin: auto auto 0 auto;
 }
-
-.ideas-portal-category .filter-buttons-heading {
-  width: 100%;
-  text-align: center;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--primary-high); // or #111 if using a light theme
-  margin-bottom: 12px;
-  position: relative;
-  padding-bottom: 6px;
-}
-
-.ideas-portal-category .filter-buttons-heading::after {
-  content: '';
-  display: block;
-  width: 40px;
-  height: 2px;
-  background-color: var(--primary-medium); // accent line
-  margin: 6px auto 0;
-  border-radius: 1px;
-}
