@@ -14,6 +14,67 @@ export default apiInitializer("0.11.1", (api) => {
     return;
   }
 
+  // Change tag text to proper casing instead of hyphenated
+  const tagMap = {
+    'new': 'New',
+    'under-review': 'Under Review',
+    'planned': 'Planned',
+    'in-progress': 'In Progress',
+    'completed': 'Completed',
+    'not-planned': 'Not Planned',
+    'already-exists': 'Already Exists',
+  };
+
+  // Function to fetch all topics for a category and count status tags
+  const fetchCategoryTopicsAndCountTags = async (categoryId, statusCounts) => {
+    try {
+      console.log(`Ideas Portal: Fetching topics for category ${categoryId}`);
+      
+      // Get the store
+      const store = api.container.lookup("service:store");
+      if (!store) {
+        console.error("Ideas Portal: Could not find store service");
+        return statusCounts;
+      }
+      
+      // Fetch topics for the category
+      const topicList = await store.findAll("topicList", { 
+        filter: `c/${categoryId}`,
+        params: { page: 0, no_subcategories: true, per_page: 100 } // Fetch up to 100 topics
+      });
+      
+      if (!topicList || !topicList.topics) {
+        console.error("Ideas Portal: Failed to fetch topics");
+        return statusCounts;
+      }
+      
+      console.log(`Ideas Portal: Fetched ${topicList.topics.length} topics`);
+      
+      // Reset counts
+      Object.keys(tagMap).forEach(tag => {
+        statusCounts[tag] = 0;
+      });
+      
+      // Count tag occurrences
+      topicList.topics.forEach(topic => {
+        if (topic.tags) {
+          topic.tags.forEach(tag => {
+            if (statusCounts.hasOwnProperty(tag)) {
+              statusCounts[tag]++;
+            }
+          });
+        }
+      });
+      
+      console.log("Ideas Portal: Status counts from API:", statusCounts);
+      return statusCounts;
+      
+    } catch (error) {
+      console.error("Ideas Portal: Error fetching topics:", error);
+      return statusCounts;
+    }
+  };
+
   // Function to create a beautiful status visualization using Chart.js
   const createStatusVisualization = (statusCounts, container) => {
     if (!container) return;
@@ -24,13 +85,9 @@ export default apiInitializer("0.11.1", (api) => {
     // Calculate total
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
     
-    // If no data, show a meaningful message instead of hiding
+    // If no data, completely hide the container
     if (total === 0) {
-      container.style.display = 'block';
-      const emptyMessage = document.createElement('div');
-      emptyMessage.className = 'ideas-empty-message';
-      emptyMessage.textContent = "This product currently has no ideas. Be the first to submit your idea!";
-      container.appendChild(emptyMessage);
+      container.style.display = 'none';
       return;
     } else {
       container.style.display = 'block';
@@ -205,20 +262,9 @@ export default apiInitializer("0.11.1", (api) => {
     return category;
   };
 
-  // Change tag text to proper casing instead of hyphenated
-  const tagMap = {
-    'new': 'New',
-    'under-review': 'Under Review',
-    'planned': 'Planned',
-    'in-progress': 'In Progress',
-    'completed': 'Completed',
-    'not-planned': 'Not Planned',
-    'already-exists': 'Already Exists',
-  };
-
-  // Main function to update the ideas portal UI
-  const updateIdeasPortal = () => {
-    console.log("Ideas Portal: Updating ideas portal UI");
+  // When page changes, apply our customizations
+  api.onPageChange(() => {
+    console.log("Ideas Portal: Page changed");
     
     // Get current category info
     const currentCategory = getCurrentCategoryInfo();
@@ -273,11 +319,10 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
     
-    // 2. Create or update tag filters
+    // 2. Add tag filters if they don't exist yet
     if (existingFilters) {
-      // Remove old filter box so we can refresh it
-      existingFilters.remove();
-      console.log("Ideas Portal: Removed existing filter box for refresh");
+      console.log("Ideas Portal: Filter box already exists, not adding again");
+      return;
     }
     
     console.log("Ideas Portal: Creating filter box for category", currentCategory.name);
@@ -316,42 +361,15 @@ export default apiInitializer("0.11.1", (api) => {
     resetFilter.textContent = 'Show All';
     container.appendChild(resetFilter);
     
-    // Add status tag filters and count topics with each tag
+    // Initialize status counts
     const statusCounts = {};
     
     // Initialize counts to zero
     Object.keys(tagMap).forEach(tag => {
       statusCounts[tag] = 0;
     });
-    
-    // Count topics with each tag
-    try {
-      // Get all topic elements in the list
-      const topicElements = document.querySelectorAll(".topic-list-item");
-      
-      console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
-      
-      // If we don't have any elements, statusCounts will remain zeros
-      // No sample data generation anymore
-      if (topicElements.length > 0) {
-        topicElements.forEach(topicEl => {
-          const tagElements = topicEl.querySelectorAll("[data-tag-name]");
-          
-          tagElements.forEach(tagEl => {
-            const tagName = tagEl.getAttribute("data-tag-name");
-            if (tagName && statusCounts.hasOwnProperty(tagName)) {
-              statusCounts[tagName]++;
-            }
-          });
-        });
-      }
-      
-      console.log("Ideas Portal: Status counts:", statusCounts);
-    } catch (e) {
-      console.error("Ideas Portal: Error counting statuses:", e);
-    }
-    
-    // Add status tag filters without counts
+
+    // Add status tag filters without counts (we'll add them all first, then update the chart)
     Object.keys(tagMap).forEach(tag => {
       const filter = document.createElement('a');
       filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
@@ -361,13 +379,16 @@ export default apiInitializer("0.11.1", (api) => {
       container.appendChild(filter);
     });
     
-    // Create the status visualization after we have the counts
-    createStatusVisualization(statusCounts, statusVisualization);
-    
     // Insert the filter container after the navigation container
     const target = document.querySelector('.navigation-container');
     if (target) {
       target.insertAdjacentElement('afterend', container);
+    }
+    
+    // Fetch all topics for the category and count tags, then create the visualization
+    fetchCategoryTopicsAndCountTags(currentCategory.id, statusCounts).then(updatedCounts => {
+      // Create the status visualization with the complete data
+      createStatusVisualization(updatedCounts, statusVisualization);
       
       // Force visualization to be visible
       setTimeout(() => {
@@ -377,18 +398,6 @@ export default apiInitializer("0.11.1", (api) => {
           console.log("Ideas Portal: Visualization container is visible");
         }
       }, 100);
-    }
-  };
-
-  // When page changes, apply our customizations
-  api.onPageChange(() => {
-    console.log("Ideas Portal: Page changed");
-    updateIdeasPortal();
-  });
-  
-  // Also update when client-side navigation occurs (tag/filter changes)
-  api.onAppEvent('page:changed', () => {
-    console.log("Ideas Portal: Page:changed event triggered");
-    updateIdeasPortal();
+    });
   });
 });
