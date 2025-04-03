@@ -183,7 +183,7 @@ export default apiInitializer("0.11.1", (api) => {
             display: true,
             text: chartTitle,
             font: {
-              size: 24,
+              size: 20,
               weight: 'bold'
             },
             color: returnPrimaryColor(),
@@ -216,7 +216,7 @@ export default apiInitializer("0.11.1", (api) => {
               centerPointLabels: true,
               color: returnPrimaryColor(),
               font: {
-                size: 16
+                size: 14
               }
             }
           }
