@@ -109,20 +109,25 @@ export default apiInitializer("0.11.1", (api) => {
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
 
-    const canvas = document.createElement('canvas');
-    canvas.id = 'ideas-status-chart';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    
     const chartWrapper = document.createElement('div');
+    chartWrapper.style.position = 'relative';
     chartWrapper.style.width = '100%';
     chartWrapper.style.maxWidth = '600px';
     chartWrapper.style.margin = '0 auto';
-    chartWrapper.style.aspectRatio = '1'; // Maintains 1:1 aspect ratio
+    chartWrapper.style.paddingBottom = '100%'; // Aspect ratio 1:1
+    chartWrapper.style.height = '0';
+    chartWrapper.style.overflow = 'hidden';
+    
+    const canvas = document.createElement('canvas');
+    canvas.id = 'ideas-status-chart';
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    
     chartWrapper.appendChild(canvas);
-    
-    chartContainer.appendChild(chartWrapper);
-    
+    chartContainer.appendChild(chartWrapper);    
 
     const labels = [], data = [], backgroundColors = [];
 
