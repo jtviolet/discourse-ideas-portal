@@ -214,7 +214,7 @@ export default apiInitializer("0.11.1", (api) => {
             pointLabels: {
               display: true,
               centerPointLabels: true,
-              color: ['#ffffff', '#000bff', '#deff00'],
+              color: returnPrimaryColor(),
               font: {
                 size: 16
               }
