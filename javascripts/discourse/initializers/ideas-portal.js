@@ -6,7 +6,7 @@ export default apiInitializer("0.11.1", (api) => {
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
 
-  // Log enabled categories for debugging
+  // Log enabled categories for debugging!
   console.log("Ideas Portal: Enabled for categories:", enabledCategories);
 
   if (!enabledCategories.length) {
