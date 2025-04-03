@@ -183,7 +183,7 @@ export default apiInitializer("0.11.1", (api) => {
             display: true,
             text: chartTitle,
             font: {
-              size: 16,
+              size: 24,
               weight: 'bold'
             },
             color: returnPrimaryColor(),
