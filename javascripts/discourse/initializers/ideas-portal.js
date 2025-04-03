@@ -311,6 +311,10 @@ export default apiInitializer("0.11.1", (api) => {
     // Create the div to wrap all filter buttons
     const filtersWrapper = document.createElement('div');
     filtersWrapper.className = 'filter-buttons';
+    const filtersHeading = document.createElement('h4');
+    filtersHeading.textContent = 'Filter by Status';
+    filtersHeading.className = 'filter-buttons-heading';
+    filtersWrapper.append(filtersHeading);
 
     const resetFilter = document.createElement('a');
     resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
@@ -328,6 +332,7 @@ export default apiInitializer("0.11.1", (api) => {
       filtersWrapper.appendChild(filter);
     });
     container.appendChild(filtersWrapper);
+
 
     const target = document.querySelector('.navigation-container');
     if (target) {
