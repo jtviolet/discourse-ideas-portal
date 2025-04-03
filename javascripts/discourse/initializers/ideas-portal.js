@@ -79,6 +79,9 @@ export default apiInitializer("0.11.1", (api) => {
       container.appendChild(noIdeasMessage);
       container.style.display = 'block';
       return;
+    }
+    else if (total === 1) {
+      container.style.display = 'hidden';
     } else {
       container.style.display = 'block';
     }
