@@ -369,4 +369,9 @@ export default apiInitializer("0.11.1", (api) => {
       }
     }
   });
+
+  // Log color scheme changes
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+    console.log('Color scheme changed:', event.matches ? 'Dark mode' : 'Light mode');
+  });
 });
