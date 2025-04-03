@@ -1,7 +1,7 @@
 /* Status visualization styling */
 .ideas-portal-category .ideas-status-visualization {
   width: 100%;
-  margin: 10px 0 10px;
+  margin: 0 0 10px;
   padding: 15px;
   background: var(--secondary);
   border-radius: 8px;
@@ -21,7 +21,7 @@
 
 /* Empty state message styling */
 .ideas-portal-category .ideas-empty-message {
-  padding: 0 20px;
+  padding: 30px 20px;
   text-align: center;
   font-size: 1.1rem;
   color: var(--primary-medium);
