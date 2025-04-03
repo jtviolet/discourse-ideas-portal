@@ -209,12 +209,12 @@ export default apiInitializer("0.11.1", (api) => {
             ticks: {
               display: false
             },
-            grid: { color: ["#ffffff", '#dddddd', '#0a0a0a'] },
+            grid: { color: returnPrimaryColor() },
             angleLines: { color: returnPrimaryColor() },
             pointLabels: {
               display: true,
               centerPointLabels: true,
-              color: returnPrimaryColor(),
+              color: ['#ffffff', '#000bff', '#deff00'],
               font: {
                 size: 16
               }
