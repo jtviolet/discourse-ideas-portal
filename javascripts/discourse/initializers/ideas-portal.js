@@ -139,7 +139,7 @@ export default apiInitializer("0.11.1", (api) => {
   const createPolarChart = (canvas, labels, data, backgroundColors) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-
+  
     window.ideasStatusChart = new Chart(ctx, {
       type: 'polarArea',
       data: {
@@ -162,6 +162,10 @@ export default apiInitializer("0.11.1", (api) => {
               boxWidth: 15
             }
           },
+          title: {
+            display: true,
+            text: 'Chart.js Polar Area Chart With Centered Point Labels'
+          },
           tooltip: {
             backgroundColor: 'rgba(0,0,0,0.8)',
             titleFont: { size: 13 },
@@ -179,7 +183,14 @@ export default apiInitializer("0.11.1", (api) => {
           r: {
             ticks: { display: false },
             grid: { color: 'rgba(0,0,0,0.05)' },
-            angleLines: { color: 'rgba(0,0,0,0.1)' }
+            angleLines: { color: 'rgba(0,0,0,0.1)' },
+            pointLabels: {
+              display: true,
+              centerPointLabels: true,
+              font: {
+                size: 14
+              }
+            }
           }
         },
         animation: {
@@ -190,6 +201,7 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
   };
+  
 
   const getCurrentCategoryInfo = () => {
     const discoveryService = api.container.lookup("service:discovery");
