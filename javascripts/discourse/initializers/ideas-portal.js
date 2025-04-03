@@ -354,7 +354,7 @@ export default apiInitializer("0.11.1", (api) => {
       console.log("Ideas Portal: Filter box already exists, updating visualization");
       
       // Just update the visualization with the current category's data
-      //updateStatusVisualization();
+      updateStatusVisualization();
       return;
     }
     
@@ -463,7 +463,7 @@ export default apiInitializer("0.11.1", (api) => {
         
         if (shouldUpdate) {
           console.log("Ideas Portal: Topic list updated, refreshing visualization");
-          updateStatusVisualization();
+          //updateStatusVisualization();
         }
       });
       
