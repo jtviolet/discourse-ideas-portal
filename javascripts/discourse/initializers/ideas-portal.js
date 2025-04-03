@@ -1,16 +1,13 @@
 import { apiInitializer } from "discourse/lib/api";
 
-export default apiInitializer("0.11.1", (api) => {
+export default apiInitializer("1.8.0", (api) => {
   // Parse enabled categories from settings
   const enabledCategories = settings.ideas_portal_categories
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
 
-  // Log enabled categories for debugging!
-  console.log("Ideas Portal: Enabled for categories:", enabledCategories);
 
   if (!enabledCategories.length) {
-    console.log("Ideas Portal: No categories configured");
     return;
   }
 
@@ -165,7 +162,36 @@ export default apiInitializer("0.11.1", (api) => {
     });
   };
 
-  // Change tag text to proper casing instead of hyphenated
+  // Helper function to get current category info using the discovery service
+  const getCurrentCategoryInfo = () => {
+    // Use the discovery service instead of the deprecated controller
+    const discoveryService = api.container.lookup("service:discovery");
+    if (!discoveryService) {
+      return null;
+    }
+
+    // Check if we're on a category route
+    if (!discoveryService.category) {
+      return null;
+    }
+
+    // Get the current category from the discoveryService
+    const category = discoveryService.category;
+    const categoryId = category?.id;
+
+    if (!categoryId) {
+      return null;
+    }
+
+    // Check if this category is in our enabled list
+    if (!enabledCategories.includes(categoryId)) {
+      return null;
+    }
+
+    return category;
+  };
+
+  // Change tag text to proper casing instead of hyphenated 
   const tagMap = {
     'new': 'New',
     'under-review': 'Under Review',
@@ -177,15 +203,12 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
   let initialStatusCounts = null; // Store initial counts
-  let chartInitialized = false;
 
   // When page changes, apply our customizations
   api.onPageChange(() => {
-    console.log("Ideas Portal: Page changed");
 
     // Get current category info
-    const discoveryService = api.container.lookup("service:discovery");
-    const currentCategory = discoveryService?.category;
+    const currentCategory = getCurrentCategoryInfo();
 
     // Find any existing ideas-tag-filters
     const existingFilters = document.querySelector('.ideas-tag-filters');
@@ -197,26 +220,16 @@ export default apiInitializer("0.11.1", (api) => {
       // Clean up any existing filter elements if we're not in an ideas category
       if (existingFilters) {
         existingFilters.remove();
-        console.log("Ideas Portal: Removed filter box when leaving ideas category");
       }
       return;
     }
 
-    const categoryId = currentCategory?.id;
     // We're in an enabled category, add the class
-    if (enabledCategories.includes(categoryId)) {
-      document.body.classList.add("ideas-portal-category");
-    } else {
-      document.body.classList.remove("ideas-portal-category");
-      if (existingFilters) {
-        existingFilters.remove();
-      }
-      return;
-    }
+    document.body.classList.add("ideas-portal-category");
 
     // Find the custom banner title element
     const bannerTitle = document.querySelector(".custom-banner__title");
-    if (bannerTitle && currentCategory) {
+    if (bannerTitle) {
       // Get the current title text (this is usually the parent category name)
       const originalTitle = bannerTitle.textContent.trim();
 
@@ -234,7 +247,6 @@ export default apiInitializer("0.11.1", (api) => {
       if (parentName && !originalTitle.includes(currentCategory.name)) {
         // Set title to "Parent Category"
         bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
-        console.log(`Ideas Portal: Updated banner title to "${bannerTitle.textContent}"`);
       }
     }
 
@@ -246,18 +258,15 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
 
-    // 2. Add tag filters if they don't exist yet
+    // 2. Add tag filters if they don't exist yet  
     if (existingFilters) {
-      console.log("Ideas Portal: Filter box already exists, not adding again");
       return;
     }
-
-    console.log("Ideas Portal: Creating filter box for category", currentCategory.name);
 
     const categorySlug = currentCategory.slug;
     let parentSlug = "";
 
-    // Get parent category info if available
+    // Get parent category info if available 
     if (currentCategory.parent_category_id) {
       const siteCategories = api.container.lookup("site:main").categories;
       const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
@@ -290,20 +299,21 @@ export default apiInitializer("0.11.1", (api) => {
 
     // Add status tag filters and count topics with each tag
     const statusCounts = {};
-    let topicList = [];
 
+    // Initialize counts to zero
+    Object.keys(tagMap).forEach(tag => {
+      statusCounts[tag] = 0;
+    });
+
+    // Count topics with each tag
     try {
-      // Get the topic list from the discovery service
-        if (discoveryService) {
-            topicList = discoveryService.topics || [];
-        }
-
-
-      console.log("Ideas Portal: Topic list:", topicList);
+      // Get the topic list model from the route
+      const topicListController = api.container.lookup("controller:discovery/topics");
+      const topicList = topicListController.get("model");
 
       // If we have a topic list, count the tags on each topic
-      if (topicList) {
-        topicList.forEach(topic => {
+      if (topicList && topicList.topics) {
+        topicList.topics.forEach(topic => {
           topic.tags?.forEach(tag => {
             if (statusCounts.hasOwnProperty(tag)) {
               statusCounts[tag]++;
@@ -312,27 +322,13 @@ export default apiInitializer("0.11.1", (api) => {
         });
       }
 
-      console.log("Ideas Portal: Status counts:", statusCounts);
     } catch (e) {
       console.error("Ideas Portal: Error counting statuses:", e);
     }
 
-    // Store initial counts if not already stored and chart not initialized
-    if (!initialStatusCounts && !chartInitialized) {
+    // Store initial counts if not already stored
+    if (!initialStatusCounts) {
       initialStatusCounts = { ...statusCounts }; // Deep copy
-    }
-
-    // Create the status visualization after we have the counts
-    if (!chartInitialized) {
-      createStatusVisualization(initialStatusCounts, statusVisualization);
-      chartInitialized = true; // set the flag
-    } else {
-      //if the chart is already initialized, just update the topic count.
-      const header = document.querySelector('.ideas-visualization-header');
-      if (header) {
-        const total = Object.values(initialStatusCounts).reduce((sum, count) => sum + count, 0);
-        header.textContent = `${total} Total Ideas`;
-      }
     }
 
     // Add status tag filters without counts
@@ -345,6 +341,9 @@ export default apiInitializer("0.11.1", (api) => {
       container.appendChild(filter);
     });
 
+    // Create the status visualization after we have the counts
+    createStatusVisualization(initialStatusCounts, statusVisualization);
+
     // Insert the filter container after the navigation container
     const target = document.querySelector('.navigation-container');
     if (target) {
@@ -355,7 +354,6 @@ export default apiInitializer("0.11.1", (api) => {
         const viz = document.querySelector('.ideas-status-visualization');
         if (viz) {
           viz.style.display = 'block';
-          console.log("Ideas Portal: Visualization container is visible");
         }
       }, 100);
     }
