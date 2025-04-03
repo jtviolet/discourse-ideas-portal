@@ -103,7 +103,7 @@ export default apiInitializer("0.11.1", (api) => {
     // Get parent category name
     // {n} ideas for {parentCategoryName} or {n} ideas for Total
     const parentCategoryName = getParentCategoryName();
-    header.textContent = `${total} ideas for ${displayCategoryName}`;
+    header.textContent = `${total} ideas for ${parentCategoryName}`;
     container.appendChild(header);
 
     const chartContainer = document.createElement('div');
