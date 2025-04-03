@@ -406,13 +406,6 @@ export default apiInitializer("0.11.1", (api) => {
     try {
       // Get all topic elements in the list
       const topicElements = document.querySelectorAll(".topic-list-item");
-      
-      console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
-      
-      // If we don't have any elements to count, use sample data for visualization
-      if (topicElements.length === 0) {
-        return;
-      } else {
         topicElements.forEach(topicEl => {
           const tagElements = topicEl.querySelectorAll("[data-tag-name]");
           
@@ -423,9 +416,6 @@ export default apiInitializer("0.11.1", (api) => {
             }
           });
         });
-      }
-      
-      console.log("Ideas Portal: Status counts:", statusCounts);
     } catch (e) {
       console.error("Ideas Portal: Error counting statuses:", e);
     }
