@@ -238,38 +238,34 @@ export default apiInitializer("0.11.1", (api) => {
     });
     
     // Count topics with each tag
-    // Count topics with each tag, focusing on the current category's total topics
     try {
       // Get all topic elements in the list
       const topicElements = document.querySelectorAll(".topic-list-item");
       
-      console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
+      console.log(`Ideas Portal: Found ${topicElements.length} topic elements for status counting`);
       
-      // Reset status counts to zero first
-      Object.keys(tagMap).forEach(tag => {
-        statusCounts[tag] = 0;
-      });
-      
-      // Count topics with each status tag
-      topicElements.forEach(topicEl => {
-        const tagElements = topicEl.querySelectorAll("[data-tag-name]");
-        
-        if (tagElements.length === 0) {
-          // If no status tag, distribute to "new" by default
-          statusCounts["new"]++;
-        } else {
+      // If we don't have any elements to count, use sample data for visualization
+      if (topicElements.length === 0) {
+        statusCounts[key] = 0;
+      } else {
+        topicElements.forEach(topicEl => {
+          const tagElements = topicEl.querySelectorAll("[data-tag-name]");
+          
           tagElements.forEach(tagEl => {
             const tagName = tagEl.getAttribute("data-tag-name");
             if (tagName && statusCounts.hasOwnProperty(tagName)) {
               statusCounts[tagName]++;
             }
           });
-        }
-      });
+        });
+      }
       
-      console.log("Ideas Portal: Status counts:", statusCounts);
+      console.log("Ideas Portal: Updated status counts:", statusCounts);
+      
+      // Create the status visualization with the new counts
+      createStatusVisualization(statusCounts, statusVisualization);
     } catch (e) {
-      console.error("Ideas Portal: Error counting statuses:", e);
+      console.error("Ideas Portal: Error updating status counts:", e);
     }
   };
 
