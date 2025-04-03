@@ -105,7 +105,7 @@ export default apiInitializer("0.11.1", (api) => {
     const parentCategoryName = getParentCategoryName();
 
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '200px';
+    chartContainer.style.height = '400px';
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
