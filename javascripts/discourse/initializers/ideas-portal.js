@@ -243,6 +243,17 @@ export default apiInitializer("0.11.1", (api) => {
   // We'll now merge this logic into the main page change hook.
 
   api.onPageChange(async () => {
+    
+    // Wait for the DOM to be ready
+    requestAnimationFrame(() => {
+      let topButton = document.querySelector(".top");
+
+      // Defensive check to make sure it exists
+      if (topButton && topButton.textContent.trim() === "Top") {
+        topButton.textContent = "Most Active"; // ← Change this to whatever you want
+      }
+    });
+
     const currentCategory = getCurrentCategoryInfo();
     const existingFilters = document.querySelector('.ideas-tag-filters');
 
