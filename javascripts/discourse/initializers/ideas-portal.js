@@ -182,7 +182,7 @@ export default apiInitializer("0.11.1", (api) => {
               size: 16,
               weight: 'bold'
             },
-            color: 'var(--primary)',
+            color: 'var(--highlight)',
             padding: {
               bottom: 10
             }
