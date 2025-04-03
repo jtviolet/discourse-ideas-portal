@@ -328,7 +328,7 @@ export default apiInitializer("0.11.1", (api) => {
       filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
       filter.className = 'tag-filter';
       filter.setAttribute('data-tag-name', tag);
-      filter.textContent = `${tagMap[tag]} (${statusCounts[tag] || 0})`;
+      filter.textContent = tagMap[tag];
       filtersWrapper.appendChild(filter);
     });
     container.appendChild(filtersWrapper);
