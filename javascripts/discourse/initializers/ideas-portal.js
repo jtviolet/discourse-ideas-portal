@@ -24,34 +24,12 @@ export default apiInitializer("0.11.1", (api) => {
     // Calculate total
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
     
-    // If no data, show a message instead of the chart
+    // If no data, completely hide the container
     if (total === 0) {
-      const emptyStateMessage = document.createElement('div');
-      emptyStateMessage.className = 'ideas-empty-state';
-      emptyStateMessage.innerHTML = `
-        <p>There are currently no new ideas for this category. You could be the first to submit one!</p>
-        <button class="btn btn-primary create-topic">Submit an Idea</button>
-      `;
-      container.appendChild(emptyStateMessage);
-      
-      // Add click event to the button
-      const createButton = emptyStateMessage.querySelector('.create-topic');
-      if (createButton) {
-        createButton.addEventListener('click', () => {
-          const composerController = api.container.lookup('controller:composer');
-          if (composerController) {
-            const categoryId = getCurrentCategoryInfo()?.id;
-            if (categoryId) {
-              composerController.open({
-                action: 'createTopic',
-                categoryId: categoryId
-              });
-            }
-          }
-        });
-      }
-      
+      container.style.display = 'none';
       return;
+    } else {
+      container.style.display = 'block';
     }
     
     // Create the visualization header
@@ -151,7 +129,7 @@ export default apiInitializer("0.11.1", (api) => {
           tooltip: {
             backgroundColor: 'rgba(0,0,0,0.8)',
             titleFont: {
-              size: 13
+              size: 13 
             },
             bodyFont: {
               size: 12
@@ -174,7 +152,7 @@ export default apiInitializer("0.11.1", (api) => {
               color: 'rgba(0,0,0,0.05)'
             },
             angleLines: {
-              color: 'rgba(0,0,0,0.1)'
+              color: 'rgba(0,0,0,0.1)'  
             }
           }
         },
@@ -223,48 +201,15 @@ export default apiInitializer("0.11.1", (api) => {
     return category;
   };
 
-  // Change tag text to proper casing instead of hyphenated
+  // Change tag text to proper casing instead of hyphenated 
   const tagMap = {
     'new': 'New',
-    'under-review': 'Under Review',
+    'under-review': 'Under Review', 
     'planned': 'Planned',
     'in-progress': 'In Progress',
     'completed': 'Completed',
     'not-planned': 'Not Planned',
     'already-exists': 'Already Exists',
-  };
-
-  // Function to properly count topics by tag using the Discourse API
-  const getTopicsWithTagCounts = async (categoryId) => {
-    // Initialize counts to zero
-    const statusCounts = {};
-    Object.keys(tagMap).forEach(tag => {
-      statusCounts[tag] = 0;
-    });
-    
-    // Get topics from the current discovery model
-    const discoveryService = api.container.lookup("service:discovery");
-    if (!discoveryService || !discoveryService.topics) {
-      console.log("Ideas Portal: No topics found in discovery service");
-      return statusCounts;
-    }
-    
-    const topics = discoveryService.topics || [];
-    console.log(`Ideas Portal: Found ${topics.length} topics in discovery service`);
-    
-    // Count topics with each tag
-    topics.forEach(topic => {
-      if (!topic.tags) return;
-      
-      topic.tags.forEach(tag => {
-        if (statusCounts.hasOwnProperty(tag)) {
-          statusCounts[tag]++;
-        }
-      });
-    });
-    
-    console.log("Ideas Portal: Tag counts from topic model:", statusCounts);
-    return statusCounts;
   };
 
   // When page changes, apply our customizations
@@ -324,7 +269,7 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
     
-    // 2. Add tag filters if they don't exist yet
+    // 2. Add tag filters if they don't exist yet  
     if (existingFilters) {
       console.log("Ideas Portal: Filter box already exists, not adding again");
       return;
@@ -335,7 +280,7 @@ export default apiInitializer("0.11.1", (api) => {
     const categorySlug = currentCategory.slug;
     let parentSlug = "";
     
-    // Get parent category info if available
+    // Get parent category info if available 
     if (currentCategory.parent_category_id) {
       const siteCategories = api.container.lookup("site:main").categories;
       const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
@@ -357,7 +302,6 @@ export default apiInitializer("0.11.1", (api) => {
     // Add status count visualization container
     const statusVisualization = document.createElement('div');
     statusVisualization.className = 'ideas-status-visualization';
-    statusVisualization.innerHTML = '<div class="ideas-loading">Loading status counts...</div>';
     container.appendChild(statusVisualization);
     
     // Add reset filter
@@ -367,7 +311,39 @@ export default apiInitializer("0.11.1", (api) => {
     resetFilter.textContent = 'Show All';
     container.appendChild(resetFilter);
     
-    // Add status tag filters
+    // Add status tag filters and count topics with each tag
+    const statusCounts = {};
+    
+    // Initialize counts to zero
+    Object.keys(tagMap).forEach(tag => {
+      statusCounts[tag] = 0; 
+    });
+    
+    // Count topics with each tag
+    try {
+      // Get the topic list model from the route
+      const topicListController = api.container.lookup("controller:discovery/topics");
+      const topicList = topicListController.get("model");
+      
+      console.log("Ideas Portal: Topic list model:", topicList);
+      
+      // If we have a topic list, count the tags on each topic
+      if (topicList && topicList.topics) {
+        topicList.topics.forEach(topic => {
+          topic.tags?.forEach(tag => {
+            if (statusCounts.hasOwnProperty(tag)) {
+              statusCounts[tag]++;
+            }
+          });
+        });
+      }
+      
+      console.log("Ideas Portal: Status counts:", statusCounts);
+    } catch (e) {
+      console.error("Ideas Portal: Error counting statuses:", e);
+    }
+    
+    // Add status tag filters without counts
     Object.keys(tagMap).forEach(tag => {
       const filter = document.createElement('a');
       filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
@@ -377,24 +353,22 @@ export default apiInitializer("0.11.1", (api) => {
       container.appendChild(filter);
     });
     
+    // Create the status visualization after we have the counts
+    createStatusVisualization(statusCounts, statusVisualization);
+    
     // Insert the filter container after the navigation container
     const target = document.querySelector('.navigation-container');
     if (target) {
       target.insertAdjacentElement('afterend', container);
       
-      // Asynchronously get topic counts and update visualization
-      setTimeout(async () => {
-        try {
-          // Get topic counts
-          const statusCounts = await getTopicsWithTagCounts(currentCategory.id);
-          
-          // Update the visualization
-          createStatusVisualization(statusCounts, statusVisualization);
-        } catch (error) {
-          console.error("Ideas Portal: Error updating visualization:", error);
-          statusVisualization.innerHTML = '<div class="ideas-error">Error loading status counts</div>';
+      // Force visualization to be visible
+      setTimeout(() => {
+        const viz = document.querySelector('.ideas-status-visualization');
+        if (viz) {
+          viz.style.display = 'block';
+          console.log("Ideas Portal: Visualization container is visible");
         }
-      }, 500); // Small delay to ensure topics are loaded
+      }, 100);
     }
   });
 });
