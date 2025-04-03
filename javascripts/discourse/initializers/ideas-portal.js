@@ -23,7 +23,21 @@ export default apiInitializer("0.11.1", (api) => {
     
     // If no data, completely hide the container
     if (total === 0) {
-      container.style.display = 'none';
+      const noIdeasMessage = document.createElement('div');
+      noIdeasMessage.className = 'no-ideas-message';
+      noIdeasMessage.innerHTML = `
+        <p>It looks like there are no ideas with this status yet.</p>
+        <p>Be the first to submit an idea!</p>
+      `;
+      
+      // Style the message to match the visualization container
+      noIdeasMessage.style.textAlign = 'center';
+      noIdeasMessage.style.padding = '20px';
+      noIdeasMessage.style.color = 'var(--primary-medium)';
+      noIdeasMessage.style.fontStyle = 'italic';
+      
+      container.appendChild(noIdeasMessage);
+      container.style.display = 'block';
       return;
     } else {
       container.style.display = 'block';
@@ -232,13 +246,7 @@ export default apiInitializer("0.11.1", (api) => {
       
       // If we don't have any elements to count, use sample data for visualization
       if (topicElements.length === 0) {
-        // Sample data for visualization demonstration
-        statusCounts["new"] = 0;
-        statusCounts["planned"] = 0;
-        statusCounts["in-progress"] = 0;
-        statusCounts["completed"] = 0;
-        statusCounts["under-review"] = 0;
-        console.log("Ideas Portal: Using sample data for visualization");
+        statusCounts[key] = 0;
       } else {
         topicElements.forEach(topicEl => {
           const tagElements = topicEl.querySelectorAll("[data-tag-name]");
