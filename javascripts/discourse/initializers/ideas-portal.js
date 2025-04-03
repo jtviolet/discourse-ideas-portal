@@ -83,19 +83,6 @@ export default apiInitializer("0.11.1", (api) => {
       container.style.display = 'block';
     }
 
-    // Function to get parent category name
-    const getParentCategoryName = () => {
-      const currentCategory = getCurrentCategoryInfo();
-      if (!currentCategory || !currentCategory.parent_category_id) {
-        return null;
-      }
-      
-      const siteCategories = api.container.lookup("site:main").categories;
-      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-      
-      return parentCategory ? parentCategory.name : null;
-    };
-
     const chartContainer = document.createElement('div');
     chartContainer.style.height = '200px';
     chartContainer.style.width = '100%';
@@ -145,6 +132,19 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
   const createPolarChart = (canvas, labels, data, backgroundColors) => {
+    // Function to get parent category name
+    const getParentCategoryName = () => {
+      const currentCategory = getCurrentCategoryInfo();
+      if (!currentCategory || !currentCategory.parent_category_id) {
+        return null;
+      }
+      
+      const siteCategories = api.container.lookup("site:main").categories;
+      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+      
+      return parentCategory ? parentCategory.name : null;
+    };
+    
     const parentCategoryName = getParentCategoryName();
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'} for ${parentCategoryName}`;
     const ctx = canvas.getContext('2d');
