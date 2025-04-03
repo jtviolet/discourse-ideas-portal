@@ -104,7 +104,7 @@ export default apiInitializer("0.11.1", (api) => {
     // {n} ideas for {parentCategoryName} or {n} ideas for Total
 
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '400px';
+    chartContainer.style.height = '250px';
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
