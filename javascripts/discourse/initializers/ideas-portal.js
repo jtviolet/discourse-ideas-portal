@@ -244,7 +244,7 @@ export default apiInitializer("0.11.1", (api) => {
       
       console.log(`Ideas Portal: Found ${topicElements.length} topic elements for status counting`);
       
-      // If we don't have any elements to count, use sample data for visualization
+      // If we don't have any elements to count, set elements to 0
       if (topicElements.length === 0) {
         statusCounts[key] = 0;
       } else {
@@ -354,7 +354,7 @@ export default apiInitializer("0.11.1", (api) => {
       console.log("Ideas Portal: Filter box already exists, updating visualization");
       
       // Just update the visualization with the current category's data
-      updateStatusVisualization();
+      //updateStatusVisualization();
       return;
     }
     
@@ -462,7 +462,8 @@ export default apiInitializer("0.11.1", (api) => {
         });
         
         if (shouldUpdate) {
-          console.log("Ideas Portal: Topic list updated, NOT refreshing visualization");
+          console.log("Ideas Portal: Topic list updated, refreshing visualization");
+          //updateStatusVisualization();
         }
       });
       
