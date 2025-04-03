@@ -164,7 +164,7 @@ export default apiInitializer("0.11.1", (api) => {
         datasets: [{
           data,
           backgroundColor: backgroundColors,
-          borderColor: backgroundColors.map(c => c.replace('1', '1')),
+          borderColor: backgroundColors.map(c => c.replace('0.8', '1')),
           borderWidth: 1,
         }]
       },
