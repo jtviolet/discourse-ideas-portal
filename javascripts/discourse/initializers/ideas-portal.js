@@ -130,8 +130,8 @@ export default apiInitializer("0.11.1", (api) => {
   const getCurrentCategoryInfo = () => {
     const discoveryService = api.container.lookup("service:discovery");
     if (!discoveryService) return null;
-    if (!discoveryService.category) return null;
     const category = discoveryService.category;
+    if (!category) return null;
     const categoryId = category?.id;
     if (!categoryId) return null;
     if (!enabledCategories.includes(categoryId)) return null;
@@ -148,7 +148,7 @@ export default apiInitializer("0.11.1", (api) => {
     }
     document.body.classList.add("ideas-portal-category");
     const bannerTitle = document.querySelector(".custom-banner__title");
-    if (bannerTitle) {
+    if (bannerTitle && currentCategory) {
       const originalTitle = bannerTitle.textContent.trim();
       let parentName = "";
       if (currentCategory.parent_category_id) {
