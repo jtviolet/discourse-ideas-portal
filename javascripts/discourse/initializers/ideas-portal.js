@@ -178,6 +178,14 @@ export default apiInitializer("0.11.1", (api) => {
           title: {
             display: true,
             text: chartTitle,
+            font: {
+              size: 16,
+              weight: 'bold'
+            },
+            color: 'var(--primary-medium)',
+            padding: {
+              bottom: 10
+            }
           },
           tooltip: {
             backgroundColor: 'rgba(0,0,0,0.8)',
