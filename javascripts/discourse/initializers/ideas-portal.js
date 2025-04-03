@@ -203,7 +203,7 @@ export default apiInitializer("0.11.1", (api) => {
         scales: {
           r: {
             ticks: { display: false },
-            grid: { color: 'rgba(0,0,0,0.05)' },
+            grid: { color: 'rgba(251, 0, 255, 0.05)' },
             angleLines: { color: 'rgba(0,0,0,0.1)' },
             pointLabels: {
               display: true,
