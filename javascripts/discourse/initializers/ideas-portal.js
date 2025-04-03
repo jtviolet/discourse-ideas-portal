@@ -109,25 +109,11 @@ export default apiInitializer("0.11.1", (api) => {
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
 
-    const chartWrapper = document.createElement('div');
-    chartWrapper.style.position = 'relative';
-    chartWrapper.style.width = '100%';
-    chartWrapper.style.maxWidth = '600px';
-    chartWrapper.style.margin = '0 auto';
-    chartWrapper.style.paddingBottom = '100%'; // Aspect ratio 1:1
-    chartWrapper.style.height = '0';
-    chartWrapper.style.overflow = 'hidden';
-    
     const canvas = document.createElement('canvas');
     canvas.id = 'ideas-status-chart';
-    canvas.style.position = 'absolute';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.width = '100%';
     canvas.style.height = '100%';
-    
-    chartWrapper.appendChild(canvas);
-    chartContainer.appendChild(chartWrapper);    
+    canvas.style.width = '100%';
+    chartContainer.appendChild(canvas);
 
     const labels = [], data = [], backgroundColors = [];
 
@@ -188,7 +174,7 @@ export default apiInitializer("0.11.1", (api) => {
       },
       options: {
         responsive: true,
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
             display: false
@@ -325,10 +311,6 @@ export default apiInitializer("0.11.1", (api) => {
     // Create the div to wrap all filter buttons
     const filtersWrapper = document.createElement('div');
     filtersWrapper.className = 'filter-buttons';
-    const filtersHeading = document.createElement('h4');
-    filtersHeading.textContent = 'Filter by Status';
-    filtersHeading.className = 'filter-buttons-heading';
-    filtersWrapper.append(filtersHeading);
 
     const resetFilter = document.createElement('a');
     resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
@@ -346,7 +328,6 @@ export default apiInitializer("0.11.1", (api) => {
       filtersWrapper.appendChild(filter);
     });
     container.appendChild(filtersWrapper);
-
 
     const target = document.querySelector('.navigation-container');
     if (target) {
