@@ -180,10 +180,8 @@ export default apiInitializer("0.11.1", (api) => {
             text: chartTitle,
             font: {
               size: 16,
-              weight: 'bold',
-              color: 'var(--primary-medium)'
+              weight: 'bold'
             },
-            color: 'var(--primary-medium)',
             padding: {
               bottom: 10
             }
