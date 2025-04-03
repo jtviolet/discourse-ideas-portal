@@ -209,7 +209,7 @@ export default apiInitializer("0.11.1", (api) => {
             ticks: {
               display: false
             },
-            grid: { color: returnPrimaryColor() },
+            grid: { color: ["#ffffff", '#dddddd', '#0a0a0a'] },
             angleLines: { color: returnPrimaryColor() },
             pointLabels: {
               display: true,
