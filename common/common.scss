@@ -4,4 +4,191 @@
 @import "visualization";
 @import "tag-filters";
 
-/* No need for mobile import here - it's automatically picked up from the mobile directory */ 
+/* No need for mobile import here - it's automatically picked up from the mobile directory */
+
+/* Ideas Portal Theme Component Styles */
+
+$tag-new-color: #007bff;
+$tag-planned-color: #17a2b8;
+$tag-in-progress-color: #fd7e14;
+$tag-already-exists-color: #6c757d;
+$tag-under-review-color: #20c997;
+$tag-completed-color: #28a745;
+$tag-not-planned-color: #dc3545;
+
+/* Base styles for the ideas portal */
+.ideas-portal-category {
+  /* Hide category breadcrumb */
+  .category-breadcrumb {
+    display: none;
+  }
+  
+  /* Change topic list header */
+  .topic-list-header span:first-of-type::before {
+    content: "Ideas";
+  }
+  
+  .topic-list-header span:first-of-type {
+    color: transparent;
+    position: relative;
+  }
+  
+  .topic-list-header span:first-of-type::before {
+    position: absolute;
+    left: 0;
+    color: var(--primary-medium);
+  }
+}
+
+/* Empty state message styling */
+.ideas-portal-category .ideas-empty-message {
+  padding: 30px 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--primary-medium);
+  background: var(--primary-very-low);
+  border-radius: 6px;
+  margin: 15px 0;
+}
+
+/* Status visualization styling */
+.ideas-portal-category .ideas-status-visualization {
+  width: 100%;
+  margin: 0 0 10px;
+  padding: 15px;
+  background: var(--secondary);
+  display: block !important; /* Force display with !important */
+  opacity: 1 !important; /* Ensure it's visible */
+  visibility: visible !important; /* Ensure it's visible */
+}
+
+.ideas-portal-category .ideas-visualization-header {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-align: center;
+}
+
+/* Tag filter styling */
+.ideas-portal-category .ideas-tag-filters {
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid var(--primary-low);
+  background: var(--secondary);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  row-gap: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.ideas-portal-category .ideas-filter-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  margin-right: 12px;
+  color: var(--primary);
+  width: 100%;
+}
+
+/* Tag styling */
+.ideas-portal-category [data-tag-name="new"],
+.ideas-portal-category [data-tag-name="planned"],
+.ideas-portal-category [data-tag-name="in-progress"],
+.ideas-portal-category [data-tag-name="already-exists"],
+.ideas-portal-category [data-tag-name="under-review"],
+.ideas-portal-category [data-tag-name="completed"],
+.ideas-portal-category [data-tag-name="not-planned"] {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: white;
+  margin-right: 4px;
+}
+
+/* Apply tag colors */
+.ideas-portal-category [data-tag-name="new"] {
+  background-color: $tag-new-color;
+}
+.ideas-portal-category [data-tag-name="planned"] {
+  background-color: $tag-planned-color;
+}
+.ideas-portal-category [data-tag-name="in-progress"] {
+  background-color: $tag-in-progress-color;
+}
+.ideas-portal-category [data-tag-name="already-exists"] {
+  background-color: $tag-already-exists-color;
+}
+.ideas-portal-category [data-tag-name="under-review"] {
+  background-color: $tag-under-review-color;
+}
+.ideas-portal-category [data-tag-name="completed"] {
+  background-color: $tag-completed-color;
+}
+.ideas-portal-category [data-tag-name="not-planned"] {
+  background-color: $tag-not-planned-color;
+}
+
+.ideas-portal-category .ideas-tag-filters .tag-filter {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: white;
+  text-decoration: none;
+  margin-right: 4px;
+}
+
+.ideas-portal-category .ideas-tag-filters .tag-filter-reset {
+  background-color: #adb5bd;
+}
+
+.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
+  opacity: 0.9;
+}
+
+/* Hover animations */
+.ideas-portal-category .ideas-tag-filters .tag-filter {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ideas-portal-category .filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 12px;
+  background: var(--secondary);
+  margin: auto auto 0 auto;
+}
+
+/* Mobile-specific styles */
+@media screen and (max-width: 850px) {
+  .ideas-portal-category .ideas-tag-filters {
+    padding: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .ideas-portal-category .filter-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .ideas-portal-category .ideas-status-visualization {
+    padding: 10px;
+  }
+} 
