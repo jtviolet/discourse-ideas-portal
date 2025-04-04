@@ -1,10 +1,10 @@
 {{#if shouldRender}}
   <div class="ideas-status-visualization">
-    {{ideas-visualization topics=this.topics}}
-    {{ideas-tag-filters 
-      tagMap=this.ideasService.tagMap
-      selectedTag=this.ideasService.selectedTag
-      onTagSelected=this.onTagSelected
+    {{component "ideas-visualization" topics=topics}}
+    {{component "ideas-tag-filters" 
+      tagMap=ideasService.tagMap
+      selectedTag=ideasService.selectedTag
+      onTagSelected=(action "onTagSelected")
     }}
   </div>
 {{/if}} 

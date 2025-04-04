@@ -1,8 +1,12 @@
 import Service from "@ember/service";
 import { inject as service } from "@ember/service";
+import { getOwner } from "@ember/application";
 
 export default Service.extend({
   discovery: service(),
+  site: service(),
+  
+  selectedTag: null,
 
   tagMap: {
     'new': 'New',
@@ -14,9 +18,12 @@ export default Service.extend({
     'already-exists': 'Already Exists',
   },
 
-  enabledCategories: settings.ideas_portal_categories
-    ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
-    : [],
+  init() {
+    this._super(...arguments);
+    this.enabledCategories = settings.ideas_portal_categories
+      ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+      : [];
+  },
 
   getCurrentCategoryInfo() {
     const category = this.discovery?.category;
@@ -69,8 +76,7 @@ export default Service.extend({
       return null;
     }
     
-    const siteCategories = this.container.lookup("site:main").categories;
-    const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+    const parentCategory = this.site.categories.find(cat => cat.id === currentCategory.parent_category_id);
     
     return parentCategory ? parentCategory.name : null;
   }

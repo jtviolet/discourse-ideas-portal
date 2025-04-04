@@ -1,23 +1,29 @@
 // javascripts/discourse/initializers/ideas-portal.js
 
 import { apiInitializer } from "discourse/lib/api";
-import IdeasService from "../services/ideas-service";
+import { initAPI } from "../api/index";
 import IdeasVisualization from "../components/ideas-visualization";
 import IdeasTagFilters from "../components/ideas-tag-filters";
 
 export default apiInitializer("0.11.1", (api) => {
-  // Register service
-  api.container.register("service:ideas-service", IdeasService);
+  // Initialize our API
+  const { ideasService } = initAPI(api);
   
-  // Register components
-  api.container.register("component:ideas-visualization", IdeasVisualization);
-  api.container.register("component:ideas-tag-filters", IdeasTagFilters);
+  // Register connector class
+  api.registerConnectorClass("before-topic-list", "ideas-portal-components", {
+    setupComponent(attrs, component) {
+      // Set up component properties
+      component.set("ideasVisualization", IdeasVisualization);
+      component.set("ideasTagFilters", IdeasTagFilters);
+      component.set("ideasService", ideasService);
+    }
+  });
   
   // Customize navigation links text
   api.onPageChange(() => {
     // Use requestAnimationFrame to ensure the DOM is fully loaded
     requestAnimationFrame(() => {
-      const currentCategory = api.container.lookup("service:ideas-service").getCurrentCategoryInfo();
+      const currentCategory = ideasService.getCurrentCategoryInfo();
       if (!currentCategory) return;
       
       // Define an array of objects with the class and new text for each link
