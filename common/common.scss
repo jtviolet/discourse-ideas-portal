@@ -12,7 +12,7 @@ $tag-not-planned-color: #dc3545;
 /* Base styles for the ideas portal */
 .ideas-portal-category {
   /* Hide category breadcrumb */
-  .category-breadcrumb {
+  .category-breadcrumb li:first-child {
     display: none;
   }
   
