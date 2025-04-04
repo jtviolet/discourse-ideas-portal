@@ -1,13 +1,6 @@
-/* Ideas Portal - Main Style Import */
-
-@import "base";
-@import "visualization";
-@import "tag-filters";
-
-/* No need for mobile import here - it's automatically picked up from the mobile directory */
-
 /* Ideas Portal Theme Component Styles */
 
+// Variables for tag colors
 $tag-new-color: #007bff;
 $tag-planned-color: #17a2b8;
 $tag-in-progress-color: #fd7e14;
