@@ -1,0 +1,22 @@
+<h3 class="ideas-filter-title">Filter by status</h3>
+
+<div class="filter-buttons">
+  {{#each-in tagMap as |tag label|}}
+    <a href="#" 
+       class="tag-filter" 
+       style={{concat 
+              "background-color: var(--tag-" tag "-color);" 
+              (if (eq selectedTag tag) " box-shadow: 0 0 0 2px var(--primary);"  "")}}
+       data-tag-name={{tag}} 
+       {{action "filterByTag" tag on="click"}}>
+      {{label}}
+    </a>
+  {{/each-in}}
+  {{#if selectedTag}}
+    <a href="#" 
+       class="tag-filter tag-filter-reset" 
+       {{action "resetFilter" on="click"}}>
+      Clear filter
+    </a>
+  {{/if}}
+</div> 

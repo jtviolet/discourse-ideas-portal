@@ -1,0 +1,34 @@
+/* Base styles for the ideas portal */
+.ideas-portal-category {
+  /* Hide category breadcrumb */
+  .category-breadcrumb {
+    display: none;
+  }
+  
+  /* Change topic list header */
+  .topic-list-header span:first-of-type::before {
+    content: "Ideas";
+  }
+  
+  .topic-list-header span:first-of-type {
+    color: transparent;
+    position: relative;
+  }
+  
+  .topic-list-header span:first-of-type::before {
+    position: absolute;
+    left: 0;
+    color: var(--primary-medium);
+  }
+}
+
+/* Empty state message styling */
+.ideas-portal-category .ideas-empty-message {
+  padding: 30px 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  color: var(--primary-medium);
+  background: var(--primary-very-low);
+  border-radius: 6px;
+  margin: 15px 0;
+} 
