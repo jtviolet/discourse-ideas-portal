@@ -3,6 +3,8 @@
 import { apiInitializer } from "discourse/lib/api";
 import IdeasService from "../services/ideas-service";
 import IdeasPortalController from "../controllers/ideas-portal-controller";
+import IdeasVisualization from "../components/ideas-visualization";
+import IdeasTagFilters from "../components/ideas-tag-filters";
 
 export default apiInitializer("0.11.1", (api) => {
   // Register service
@@ -10,6 +12,10 @@ export default apiInitializer("0.11.1", (api) => {
   
   // Register controller for route
   api.container.register("controller:ideas-portal", IdeasPortalController);
+  
+  // Register components
+  api.container.register("component:ideas-visualization", IdeasVisualization);
+  api.container.register("component:ideas-tag-filters", IdeasTagFilters);
   
   // Customize navigation links text
   api.onPageChange(() => {
@@ -49,24 +55,41 @@ export default apiInitializer("0.11.1", (api) => {
           const ideasService = api.container.lookup("service:ideas-service");
           const ideasController = api.container.lookup("controller:ideas-portal");
           
-          // Let Ember render our components
-          api.renderInOutlet("before-topic-list", "components/ideas-visualization", {
-            model: {
-              topics: ideasController.topics
-            }
-          });
-          
-          // Render the tag filters
-          api.renderInOutlet("before-topic-list", "components/ideas-tag-filters", {
-            model: {
-              tagMap: ideasService.tagMap,
-              onTagSelected: (tag) => ideasController.send("filterByTag", tag)
-            }
-          });
+          // Access the renderGlimmer API if available (newer Discourse versions)
+          if (api.renderGlimmer) {
+            api.renderGlimmer(
+              "div.ideas-status-visualization",
+              "component:ideas-visualization",
+              { topics: ideasController.topics }
+            );
+            
+            api.renderGlimmer(
+              "div.ideas-status-visualization",
+              "component:ideas-tag-filters",
+              { 
+                tagMap: ideasService.tagMap,
+                onTagSelected: (tag) => ideasController.send("filterByTag", tag)
+              }
+            );
+          } else {
+            // Fall back to renderInOutlet for older Discourse versions
+            api.renderInOutlet("before-topic-list", "components/ideas-visualization", {
+              model: {
+                topics: ideasController.topics
+              }
+            });
+            
+            api.renderInOutlet("before-topic-list", "components/ideas-tag-filters", {
+              model: {
+                tagMap: ideasService.tagMap,
+                onTagSelected: (tag) => ideasController.send("filterByTag", tag)
+              }
+            });
+          }
         }
       }
       
-      // Add the class when leaving the ideas category
+      // Clean up when leaving the category
       api.cleanupStream(() => {
         document.body.classList.remove("ideas-portal-category");
       });

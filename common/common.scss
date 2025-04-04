@@ -1,10 +1,7 @@
 /* Ideas Portal - Main Style Import */
 
-@import "stylesheets/common/ideas-base";
-@import "stylesheets/common/ideas-visualization";
-@import "stylesheets/common/ideas-tag-filters";
+@import "ideas-base";
+@import "ideas-visualization";
+@import "ideas-tag-filters";
 
-// Import mobile styles with a media query
-@media (max-width: 850px) {
-  @import "stylesheets/mobile/ideas-mobile";
-} 
+/* No need for mobile import here - it's automatically picked up from the mobile directory */ 
