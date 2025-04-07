@@ -1,15 +1,17 @@
 /* Status visualization styling */
-.ideas-portal-category .ideas-status-visualization {
+.ideas-portal-category .ideas-status-visualization,
+.tag-page .ideas-status-visualization {
   width: 100%;
   margin: 0 0 10px;
   padding: 15px;
   background: var(--secondary);
-  display: block !important; /* Force display with !important */
-  opacity: 1 !important; /* Ensure it's visible */
-  visibility: visible !important; /* Ensure it's visible */
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
-.ideas-portal-category .ideas-visualization-header {
+.ideas-portal-category .ideas-visualization-header,
+.tag-page .ideas-visualization-header {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--primary);
@@ -17,7 +19,8 @@
 }
 
 /* Empty state message styling */
-.ideas-portal-category .ideas-empty-message {
+.ideas-portal-category .ideas-empty-message,
+.tag-page .ideas-empty-message {
   padding: 30px 20px;
   text-align: center;
   font-size: 1.1rem;
@@ -28,7 +31,8 @@
 }
 
 /* Tag filter styling */
-.ideas-portal-category .ideas-tag-filters {
+.ideas-portal-category .ideas-tag-filters,
+.tag-page .ideas-tag-filters {
   margin: 16px 0;
   padding: 16px;
   border: 1px solid var(--primary-low);
@@ -42,7 +46,8 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
 
-.ideas-portal-category .ideas-filter-title {
+.ideas-portal-category .ideas-filter-title,
+.tag-page .ideas-filter-title {
   font-size: 1.25rem;
   font-weight: 700;
   margin: 0;
@@ -52,36 +57,38 @@
 }
 
 /* Custom colors per tag */
-.ideas-portal-category [data-tag-name="new"] {
+.ideas-portal-category [data-tag-name="new"],
+.tag-page [data-tag-name="new"] {
   background-color: #007bff;
 }
-.ideas-portal-category [data-tag-name="planned"] {
+.ideas-portal-category [data-tag-name="planned"],
+.tag-page [data-tag-name="planned"] {
   background-color: #17a2b8;
 }
-.ideas-portal-category [data-tag-name="in-progress"] {
+.ideas-portal-category [data-tag-name="in-progress"],
+.tag-page [data-tag-name="in-progress"] {
   background-color: #fd7e14;
 }
-.ideas-portal-category [data-tag-name="already-exists"] {
+.ideas-portal-category [data-tag-name="already-exists"],
+.tag-page [data-tag-name="already-exists"] {
   background-color: #6c757d;
 }
-.ideas-portal-category [data-tag-name="under-review"] {
+.ideas-portal-category [data-tag-name="under-review"],
+.tag-page [data-tag-name="under-review"] {
   background-color: #20c997;
 }
-.ideas-portal-category [data-tag-name="completed"] {
+.ideas-portal-category [data-tag-name="completed"],
+.tag-page [data-tag-name="completed"] {
   background-color: #28a745;
 }
-.ideas-portal-category [data-tag-name="not-planned"] {
+.ideas-portal-category [data-tag-name="not-planned"],
+.tag-page [data-tag-name="not-planned"] {
   background-color: #dc3545;
 }
 
 /* Tag styling */
-.ideas-portal-category [data-tag-name="new"],
-.ideas-portal-category [data-tag-name="planned"],
-.ideas-portal-category [data-tag-name="in-progress"],
-.ideas-portal-category [data-tag-name="already-exists"],
-.ideas-portal-category [data-tag-name="under-review"],
-.ideas-portal-category [data-tag-name="completed"],
-.ideas-portal-category [data-tag-name="not-planned"] {
+.ideas-portal-category [data-tag-name],
+.tag-page [data-tag-name] {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 16px;
@@ -92,7 +99,8 @@
   margin-right: 4px;
 }
 
-.ideas-portal-category .ideas-tag-filters .tag-filter {
+.ideas-portal-category .ideas-tag-filters .tag-filter,
+.tag-page .ideas-tag-filters .tag-filter {
   display: inline-block;
   padding: 4px 10px;
   border-radius: 16px;
@@ -104,47 +112,53 @@
   margin-right: 4px;
 }
 
-.ideas-portal-category .ideas-tag-filters .tag-filter-reset {
+.ideas-portal-category .ideas-tag-filters .tag-filter-reset,
+.tag-page .ideas-tag-filters .tag-filter-reset {
   background-color: #adb5bd;
 }
 
-.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
+.ideas-portal-category .ideas-tag-filters .tag-filter:hover,
+.tag-page .ideas-tag-filters .tag-filter:hover {
   opacity: 0.9;
 }
 
 /* Hide category breadcrumb */
 .ideas-portal-category .category-breadcrumb li:first-child,
-.ideas-portal-category .category-breadcrumb li:last-child {
+.ideas-portal-category .category-breadcrumb li:last-child,
+.tag-page .category-breadcrumb li:first-child,
+.tag-page .category-breadcrumb li:last-child {
   display: none;
 }
 
 /* Change topic list header */
-.ideas-portal-category .topic-list-header span:first-of-type::before {
-  content: "Ideas";
-}
-
-.ideas-portal-category .topic-list-header span:first-of-type {
+.ideas-portal-category .topic-list-header span:first-of-type,
+.tag-page .topic-list-header span:first-of-type {
   color: transparent;
   position: relative;
 }
 
-.ideas-portal-category .topic-list-header span:first-of-type::before {
+.ideas-portal-category .topic-list-header span:first-of-type::before,
+.tag-page .topic-list-header span:first-of-type::before {
+  content: "Ideas";
   position: absolute;
   left: 0;
   color: var(--primary-medium);
 }
 
 /* Hover animations */
-.ideas-portal-category .ideas-tag-filters .tag-filter {
+.ideas-portal-category .ideas-tag-filters .tag-filter,
+.tag-page .ideas-tag-filters .tag-filter {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
+.ideas-portal-category .ideas-tag-filters .tag-filter:hover,
+.tag-page .ideas-tag-filters .tag-filter:hover {
   transform: scale(1.05);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.ideas-portal-category .filter-buttons {
+.ideas-portal-category .filter-buttons,
+.tag-page .filter-buttons {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;

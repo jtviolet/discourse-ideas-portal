@@ -7,6 +7,10 @@ export default apiInitializer("0.11.1", (api) => {
     ? settings.enabled_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
 
+    const enabledTags = settings.enabled_tags
+    ? settings.enabled_tags.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+    : [];
+
   let currentCategoryId = null;
 
   const tagMap = {
