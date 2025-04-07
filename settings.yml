@@ -4,8 +4,8 @@ ideas_portal_categories:
   default: ""
   description: "Select categories where the Ideas Portal styling should be applied."
 
-  ideas_portal_tags:
-  type: list
-  list_type: tag
-  default: ""
-  description: "Select tags where the Ideas Portal styling should be applied to their pages."
+ideas_portal_tags:
+type: list
+list_type: tag
+default: ""
+description: "Select tags where the Ideas Portal styling should be applied to their pages."
