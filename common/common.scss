@@ -109,6 +109,14 @@
   .ideas-tag-filters .tag-filter:hover {
     opacity: 0.9;
   }
+.ideas-portal-category .ideas-tag-filters .tag-filter:hover {
+  opacity: 0.9;
+}
+
+/* Hide category breadcrumb */
+.ideas-portal-category .category-breadcrumb li:first-child {
+  display: none;
+}
 
   /* Change topic list header */
   .topic-list-header span:first-of-type::before {
