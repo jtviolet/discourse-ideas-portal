@@ -8,10 +8,10 @@ export default apiInitializer("0.11.1", (api) => {
 
   // Parse enabled tags from settings
   const enabledTags = settings.enabled_tags
-    ? settings.enabled_tags.split("|")
+    ? settings.enabled_tags.split("|").map(tag => tag.trim()).filter(tag => tag.length > 0)
     : [];
 
-  // Log enabled categories and tags for debugging
+  // Log configuration for debugging
   console.log("Ideas Portal: Enabled for categories:", enabledCategories);
   console.log("Ideas Portal: Enabled for tags:", enabledTags);
 
@@ -19,81 +19,6 @@ export default apiInitializer("0.11.1", (api) => {
     console.log("Ideas Portal: No categories or tags configured");
     return;
   }
-
-  // Helper function to check if we're on a tag page that should be enabled
-  const isEnabledTagPage = () => {
-    if (!enabledTags.length) return false;
-
-    const router = api.container.lookup("service:router");
-    const routeName = router.currentRouteName;
-    
-    // Check if we're on a tag route
-    if (!routeName.includes('tag.show')) return false;
-    
-    // Get current tag from route params
-    const controller = api.container.lookup("controller:tag-show");
-    if (!controller) return false;
-    
-    const currentTag = controller.tag?.id;
-    if (!currentTag) return false;
-    
-    console.log(`Ideas Portal: Current tag: ${currentTag}`);
-    
-    // Check if this tag is in our enabled list
-    if (enabledTags.includes(currentTag)) {
-      console.log(`Ideas Portal: Tag ${currentTag} is in enabled list`);
-      return true;
-    }
-    
-    return false;
-  };
-
-  // Helper function to get current category info using the discovery service
-  const getCurrentCategoryInfo = () => {
-    // Use the discovery service instead of the deprecated controller
-    const discoveryService = api.container.lookup("service:discovery");
-    if (!discoveryService) {
-      console.log("Ideas Portal: Could not find discovery service");
-      return null;
-    }
-    
-    // Check if we're on a category route
-    if (!discoveryService.category) {
-      console.log("Ideas Portal: Not on a category page");
-      return null;
-    }
-    
-    // Get the current category from the discoveryService
-    const category = discoveryService.category;
-    const categoryId = category?.id;
-    
-    if (!categoryId) {
-      console.log("Ideas Portal: No category ID found");
-      return null;
-    }
-    
-    console.log(`Ideas Portal: Current category ID: ${categoryId}, Enabled categories: ${enabledCategories}`);
-    
-    // Check if this category is in our enabled list
-    if (!enabledCategories.includes(categoryId)) {
-      console.log(`Ideas Portal: Category ${categoryId} not in enabled list`);
-      return null;
-    }
-    
-    console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
-    return category;
-  };
-
-  // Change tag text to proper casing instead of hyphenated
-  const tagMap = {
-    'new': 'New',
-    'under-review': 'Under Review',
-    'planned': 'Planned',
-    'in-progress': 'In Progress',
-    'completed': 'Completed',
-    'not-planned': 'Not Planned',
-    'already-exists': 'Already Exists',
-  };
 
   // Function to create a beautiful status visualization using Chart.js
   const createStatusVisualization = (statusCounts, container) => {
@@ -246,21 +171,98 @@ export default apiInitializer("0.11.1", (api) => {
     });
   };
 
+  // Helper function to check if we're on a tag page that matches our enabled tags
+  const getCurrentTagInfo = () => {
+    const router = api.container.lookup("service:router");
+    const routeName = router.currentRouteName;
+    
+    // Check if we're on a tag route
+    if (!routeName.includes("tag.show")) {
+      console.log("Ideas Portal: Not on a tag page");
+      return null;
+    }
+    
+    // Get the current tag from the route
+    const currentRoute = router.currentRoute;
+    const currentTag = currentRoute.params?.tag_id;
+    
+    if (!currentTag) {
+      console.log("Ideas Portal: No tag found");
+      return null;
+    }
+    
+    console.log(`Ideas Portal: Current tag: ${currentTag}, Enabled tags: ${enabledTags}`);
+    
+    // Check if this tag is in our enabled list
+    if (!enabledTags.includes(currentTag)) {
+      console.log(`Ideas Portal: Tag ${currentTag} not in enabled list`);
+      return null;
+    }
+    
+    console.log(`Ideas Portal: Found enabled tag: ${currentTag}`);
+    return { id: currentTag, name: currentTag };
+  };
+
+  // Helper function to get current category info using the discovery service
+  const getCurrentCategoryInfo = () => {
+    // Use the discovery service instead of the deprecated controller
+    const discoveryService = api.container.lookup("service:discovery");
+    if (!discoveryService) {
+      console.log("Ideas Portal: Could not find discovery service");
+      return null;
+    }
+    
+    // Check if we're on a category route
+    if (!discoveryService.category) {
+      console.log("Ideas Portal: Not on a category page");
+      return null;
+    }
+    
+    // Get the current category from the discoveryService
+    const category = discoveryService.category;
+    const categoryId = category?.id;
+    
+    if (!categoryId) {
+      console.log("Ideas Portal: No category ID found");
+      return null;
+    }
+    
+    console.log(`Ideas Portal: Current category ID: ${categoryId}, Enabled categories: ${enabledCategories}`);
+    
+    // Check if this category is in our enabled list
+    if (!enabledCategories.includes(categoryId)) {
+      console.log(`Ideas Portal: Category ${categoryId} not in enabled list`);
+      return null;
+    }
+    
+    console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
+    return category;
+  };
+
+  // Change tag text to proper casing instead of hyphenated
+  const tagMap = {
+    'new': 'New',
+    'under-review': 'Under Review',
+    'planned': 'Planned',
+    'in-progress': 'In Progress',
+    'completed': 'Completed',
+    'not-planned': 'Not Planned',
+    'already-exists': 'Already Exists',
+  };
+
   // When page changes, apply our customizations
   api.onPageChange(() => {
     console.log("Ideas Portal: Page changed");
     
-    // Get current category info
+    // Get current category and tag info
     const currentCategory = getCurrentCategoryInfo();
-    
-    // Check if we're on an enabled tag page
-    const onEnabledTagPage = isEnabledTagPage();
+    const currentTag = getCurrentTagInfo();
     
     // Find any existing ideas-tag-filters
     const existingFilters = document.querySelector('.ideas-tag-filters');
     
-    // Remove ideas-portal-category class from body if we're not in an enabled category or tag
-    if (!currentCategory && !onEnabledTagPage) {
+    // Remove ideas-portal-category and ideas-portal-tag classes from body if we're not in an enabled category or tag
+    if (!currentCategory && !currentTag) {
       document.body.classList.remove("ideas-portal-category");
       document.body.classList.remove("ideas-portal-tag");
       
@@ -276,32 +278,34 @@ export default apiInitializer("0.11.1", (api) => {
     if (currentCategory) {
       document.body.classList.add("ideas-portal-category");
       document.body.classList.remove("ideas-portal-tag");
-    } else if (onEnabledTagPage) {
+    } else if (currentTag) {
       document.body.classList.add("ideas-portal-tag");
       document.body.classList.remove("ideas-portal-category");
     }
     
-    // Find the custom banner title element
-    const bannerTitle = document.querySelector(".custom-banner__title");
-    if (bannerTitle && currentCategory) {
-      // Get the current title text (this is usually the parent category name)
-      const originalTitle = bannerTitle.textContent.trim();
-      
-      // Get parent category name if available
-      let parentName = "";
-      if (currentCategory.parent_category_id) {
-        const siteCategories = api.container.lookup("site:main").categories;
-        const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-        if (parentCategory) {
-          parentName = parentCategory.name;
+    // Find the custom banner title element (for category pages)
+    if (currentCategory) {
+      const bannerTitle = document.querySelector(".custom-banner__title");
+      if (bannerTitle) {
+        // Get the current title text (this is usually the parent category name)
+        const originalTitle = bannerTitle.textContent.trim();
+        
+        // Get parent category name if available
+        let parentName = "";
+        if (currentCategory.parent_category_id) {
+          const siteCategories = api.container.lookup("site:main").categories;
+          const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+          if (parentCategory) {
+            parentName = parentCategory.name;
+          }
         }
-      }
-      
-      // If we have a parent and the title doesn't already include both parent and category names
-      if (parentName && !originalTitle.includes(currentCategory.name)) {
-        // Set title to "Parent Category"
-        bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
-        console.log(`Ideas Portal: Updated banner title to "${bannerTitle.textContent}"`);
+        
+        // If we have a parent and the title doesn't already include both parent and category names
+        if (parentName && !originalTitle.includes(currentCategory.name)) {
+          // Set title to "Parent Category"
+          bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
+          console.log(`Ideas Portal: Updated banner title to "${bannerTitle.textContent}"`);
+        }
       }
     }
     
@@ -319,9 +323,29 @@ export default apiInitializer("0.11.1", (api) => {
       return;
     }
     
-    const isTagPage = onEnabledTagPage;
+    // Create filter box for either category or tag page
+    if (currentCategory) {
+      console.log("Ideas Portal: Creating filter box for category", currentCategory.name);
+      createFiltersForCategory(currentCategory);
+    } else if (currentTag) {
+      console.log("Ideas Portal: Creating filter box for tag", currentTag.name);
+      createFiltersForTag(currentTag);
+    }
+  });
+  
+  // Function to create filters for category pages
+  const createFiltersForCategory = (category) => {
+    const categorySlug = category.slug;
+    let parentSlug = "";
     
-    console.log(`Ideas Portal: Creating filter box for ${isTagPage ? 'tag page' : 'category'}`);
+    // Get parent category info if available
+    if (category.parent_category_id) {
+      const siteCategories = api.container.lookup("site:main").categories;
+      const parentCategory = siteCategories.find(cat => cat.id === category.parent_category_id);
+      if (parentCategory) {
+        parentSlug = `${parentCategory.slug}/`;
+      }
+    }
     
     // Create filter container
     const container = document.createElement('div');
@@ -338,34 +362,9 @@ export default apiInitializer("0.11.1", (api) => {
     statusVisualization.className = 'ideas-status-visualization';
     container.appendChild(statusVisualization);
     
-    // Prepare URL for reset filter based on whether we're on a category or tag page
-    let resetUrl = '';
-    
-    if (currentCategory) {
-      const categorySlug = currentCategory.slug;
-      let parentSlug = "";
-      
-      // Get parent category info if available
-      if (currentCategory.parent_category_id) {
-        const siteCategories = api.container.lookup("site:main").categories;
-        const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-        if (parentCategory) {
-          parentSlug = `${parentCategory.slug}/`;
-        }
-      }
-      
-      resetUrl = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
-    } else if (isTagPage) {
-      // Get current tag from controller
-      const tagController = api.container.lookup("controller:tag-show");
-      const currentTag = tagController.tag?.id;
-      
-      resetUrl = `/tag/${currentTag}`;
-    }
-    
     // Add reset filter
     const resetFilter = document.createElement('a');
-    resetFilter.href = resetUrl;
+    resetFilter.href = `/c/${parentSlug}${categorySlug}/${category.id}`;
     resetFilter.className = 'tag-filter tag-filter-reset';
     resetFilter.textContent = 'Show All';
     container.appendChild(resetFilter);
@@ -412,36 +411,10 @@ export default apiInitializer("0.11.1", (api) => {
       console.error("Ideas Portal: Error counting statuses:", e);
     }
     
-    // Add status tag filters
+    // Add status tag filters without counts
     Object.keys(tagMap).forEach(tag => {
       const filter = document.createElement('a');
-      
-      // Create appropriate URL based on whether we're on a category or tag page
-      let filterUrl = '';
-      
-      if (currentCategory) {
-        const categorySlug = currentCategory.slug;
-        let parentSlug = "";
-        
-        // Get parent category info if available
-        if (currentCategory.parent_category_id) {
-          const siteCategories = api.container.lookup("site:main").categories;
-          const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-          if (parentCategory) {
-            parentSlug = `${parentCategory.slug}/`;
-          }
-        }
-        
-        filterUrl = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
-      } else if (isTagPage) {
-        // Get current tag from controller
-        const tagController = api.container.lookup("controller:tag-show");
-        const currentTag = tagController.tag?.id;
-        
-        filterUrl = `/tags/intersection/${currentTag}/${tag}`;
-      }
-      
-      filter.href = filterUrl;
+      filter.href = `/tags/c/${parentSlug}${categorySlug}/${category.id}/${tag}`;
       filter.className = 'tag-filter';
       filter.setAttribute('data-tag-name', tag);
       filter.textContent = tagMap[tag]; // Just the name without count
@@ -465,5 +438,100 @@ export default apiInitializer("0.11.1", (api) => {
         }
       }, 100);
     }
-  });
+  };
+  
+  // Function to create filters for tag pages
+  const createFiltersForTag = (tag) => {
+    // Create filter container
+    const container = document.createElement('div');
+    container.className = 'ideas-tag-filters list-controls';
+    
+    // Add title
+    const title = document.createElement('h3');
+    title.className = 'ideas-filter-title';
+    title.textContent = 'Filter by Status';
+    container.appendChild(title);
+    
+    // Add status count visualization container
+    const statusVisualization = document.createElement('div');
+    statusVisualization.className = 'ideas-status-visualization';
+    container.appendChild(statusVisualization);
+    
+    // Add reset filter
+    const resetFilter = document.createElement('a');
+    resetFilter.href = `/tag/${tag.name}`;
+    resetFilter.className = 'tag-filter tag-filter-reset';
+    resetFilter.textContent = 'Show All';
+    container.appendChild(resetFilter);
+    
+    // Add status tag filters and count topics with each tag
+    const statusCounts = {};
+    
+    // Initialize counts to zero
+    Object.keys(tagMap).forEach(statusTag => {
+      statusCounts[statusTag] = 0;
+    });
+    
+    // Count topics with each tag
+    try {
+      // Get all topic elements in the list
+      const topicElements = document.querySelectorAll(".topic-list-item");
+      
+      console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
+      
+      // If we don't have any elements to count, use sample data for visualization
+      if (topicElements.length === 0) {
+        // Sample data for visualization demonstration
+        statusCounts["new"] = 3;
+        statusCounts["planned"] = 2;
+        statusCounts["in-progress"] = 1;
+        statusCounts["completed"] = 2;
+        statusCounts["under-review"] = 1;
+        console.log("Ideas Portal: Using sample data for visualization");
+      } else {
+        topicElements.forEach(topicEl => {
+          const tagElements = topicEl.querySelectorAll("[data-tag-name]");
+          
+          tagElements.forEach(tagEl => {
+            const tagName = tagEl.getAttribute("data-tag-name");
+            if (tagName && statusCounts.hasOwnProperty(tagName)) {
+              statusCounts[tagName]++;
+            }
+          });
+        });
+      }
+      
+      console.log("Ideas Portal: Status counts:", statusCounts);
+    } catch (e) {
+      console.error("Ideas Portal: Error counting statuses:", e);
+    }
+    
+    // Add status tag filters without counts
+    Object.keys(tagMap).forEach(statusTag => {
+      const filter = document.createElement('a');
+      filter.href = `/tags/intersection/${tag.name}/${statusTag}`;
+      filter.className = 'tag-filter';
+      filter.setAttribute('data-tag-name', statusTag);
+      filter.textContent = tagMap[statusTag]; // Just the name without count
+      container.appendChild(filter);
+    });
+    
+    // Create the status visualization after we have the counts
+    createStatusVisualization(statusCounts, statusVisualization);
+    
+    // Insert the filter container after the navigation container
+    const target = document.querySelector('.navigation-container');
+    if (target) {
+      target.insertAdjacentElement('afterend', container);
+      
+      // Force visualization to be visible
+      setTimeout(() => {
+        const viz = document.querySelector('.ideas-status-visualization');
+        if (viz) {
+          viz.style.display = 'block';
+          console.log("Ideas Portal: Visualization container is visible");
+        }
+      }, 100);
+    }
+  };
 });
