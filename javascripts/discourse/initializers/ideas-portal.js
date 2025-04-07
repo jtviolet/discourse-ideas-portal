@@ -1,26 +1,14 @@
+// javascripts/discourse/initializers/ideas-portal.js
+
 import { apiInitializer } from "discourse/lib/api";
 
 export default apiInitializer("0.11.1", (api) => {
-  // Parse enabled categories from settings
   const enabledCategories = settings.ideas_portal_categories
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
 
-  // Parse enabled tags from settings
-  const enabledTags = settings.ideas_portal_tags
-    ? settings.ideas_portal_tags.split("|").map(tag => tag.trim()).filter(Boolean)
-    : [];
+  let currentCategoryId = null;
 
-  // Log enabled categories and tags for debugging
-  console.log("Ideas Portal: Enabled for categories:", enabledCategories);
-  console.log("Ideas Portal: Enabled for tags:", enabledTags);
-
-  if (!enabledCategories.length && !enabledTags.length) {
-    console.log("Ideas Portal: No categories or tags configured");
-    return;
-  }
-
-  // Change tag text to proper casing instead of hyphenated
   const tagMap = {
     'new': 'New',
     'under-review': 'Under Review',
@@ -31,102 +19,156 @@ export default apiInitializer("0.11.1", (api) => {
     'already-exists': 'Already Exists',
   };
 
-  // Function to create a beautiful status visualization using Chart.js
+  const fetchAllTopicsInCategory = async (categoryId) => {
+    const pageSize = 100;
+    let page = 0;
+    let allTopics = [];
+    let done = false;
+
+    while (!done) {
+      const response = await fetch(`/c/${categoryId}.json?page=${page}`);
+      if (!response.ok) break;
+
+      const data = await response.json();
+      const topics = data.topic_list.topics || [];
+
+      allTopics = allTopics.concat(topics);
+      if (topics.length < pageSize) {
+        done = true;
+      } else {
+        page++;
+      }
+    }
+
+    return allTopics;
+  };
+
+  const buildStatusCounts = (topics) => {
+    const counts = {};
+    Object.keys(tagMap).forEach(tag => counts[tag] = 0);
+
+    topics.forEach(topic => {
+      const tags = topic.tags || [];
+      tags.forEach(tag => {
+        if (counts.hasOwnProperty(tag)) {
+          counts[tag]++;
+        }
+      });
+    });
+
+    return counts;
+  };
+
   const createStatusVisualization = (statusCounts, container) => {
     if (!container) return;
-    
-    // Clear the container
+
     container.innerHTML = '';
-    
-    // Calculate total
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-    
-    // If no data, completely hide the container
+
     if (total === 0) {
-      container.style.display = 'none';
+      const noIdeasMessage = document.createElement('div');
+      noIdeasMessage.className = 'no-ideas-message';
+      noIdeasMessage.innerHTML = `
+        <p>It looks like there are no ideas with this status yet.</p>
+        <p>Be the first to submit an idea!</p>
+      `;
+      noIdeasMessage.style.textAlign = 'center';
+      noIdeasMessage.style.padding = '20px';
+      noIdeasMessage.style.color = 'var(--primary-medium)';
+      noIdeasMessage.style.fontStyle = 'italic';
+      container.appendChild(noIdeasMessage);
+      container.style.display = 'block';
       return;
     } else {
       container.style.display = 'block';
     }
-    
-    // Create the visualization header
+
+    // Function to get parent category name
+    const getParentCategoryName = () => {
+      const currentCategory = getCurrentCategoryInfo();
+      if (!currentCategory || !currentCategory.parent_category_id) {
+        return null;
+      }
+      
+      const siteCategories = api.container.lookup("site:main").categories;
+      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+      
+      return parentCategory ? parentCategory.name : null;
+    };
+
+    // Then update your header creation code
     const header = document.createElement('div');
     header.className = 'ideas-visualization-header';
-    header.textContent = `${total} Total Ideas`;
-    container.appendChild(header);
-    
-    // Create a container with fixed height to prevent expansion
+
+    // Get parent category name
+    // {n} ideas for {parentCategoryName} or {n} ideas for Total
+
     const chartContainer = document.createElement('div');
-    chartContainer.style.height = '200px'; // Increased height for radar/polar chart
+    chartContainer.style.height = '250px';
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
-    
-    // Create a canvas for the chart
+
     const canvas = document.createElement('canvas');
     canvas.id = 'ideas-status-chart';
     canvas.style.height = '100%';
     canvas.style.width = '100%';
     chartContainer.appendChild(canvas);
-    
-    // Process data for Chart.js
-    const labels = [];
-    const data = [];
-    const backgroundColors = [];
-    
+
+    const labels = [], data = [], backgroundColors = [];
+
     Object.keys(statusCounts).forEach(status => {
       if (statusCounts[status] > 0) {
         labels.push(tagMap[status]);
         data.push(statusCounts[status]);
-        
-        // Get color based on status
         let color;
         switch(status) {
-          case 'new': color = 'rgba(0, 123, 255, 0.7)'; break;
-          case 'planned': color = 'rgba(23, 162, 184, 0.7)'; break;
-          case 'in-progress': color = 'rgba(253, 126, 20, 0.7)'; break;
-          case 'already-exists': color = 'rgba(108, 117, 125, 0.7)'; break;
-          case 'under-review': color = 'rgba(32, 201, 151, 0.7)'; break;
-          case 'completed': color = 'rgba(40, 167, 69, 0.7)'; break;
-          case 'not-planned': color = 'rgba(220, 53, 69, 0.7)'; break;
-          default: color = 'rgba(173, 181, 189, 0.7)';
+          case 'new': color = 'rgba(0, 123, 255, 1)'; break;
+          case 'planned': color = 'rgba(23, 162, 184, 1)'; break;
+          case 'in-progress': color = 'rgba(253, 126, 20, 1)'; break;
+          case 'already-exists': color = 'rgba(108, 117, 125, 1)'; break;
+          case 'under-review': color = 'rgba(32, 201, 151, 1)'; break;
+          case 'completed': color = 'rgba(40, 167, 69, 1)'; break;
+          case 'not-planned': color = 'rgba(220, 53, 69, 1)'; break;
+          default: color = 'rgba(173, 181, 189, 1)';
         }
         backgroundColors.push(color);
       }
     });
-    
-    // Destroy existing chart if it exists
+
     if (window.ideasStatusChart) {
       window.ideasStatusChart.destroy();
+      window.ideasStatusChart = null;
     }
-    
-    // Load Chart.js from CDN if not already loaded
+
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors);
+      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors, total);
       document.head.appendChild(script);
     } else {
-      createPolarChart(canvas, labels, data, backgroundColors);
+      createPolarChart(canvas, labels, data, backgroundColors, total);
     }
   };
-  
-  // Function to create a polar area chart once Chart.js is loaded
-  const createPolarChart = (canvas, labels, data, backgroundColors) => {
-    if (!canvas) return;
-    
+
+  const createPolarChart = (canvas, labels, data, backgroundColors, total) => {
+    const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'}`;
+    const returnPrimaryColor = () => {
+      const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
+      return primaryColor;
+    };
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
-    // Create a unique polar area chart for idea status distribution
+  
     window.ideasStatusChart = new Chart(ctx, {
-      type: 'polarArea', // More interesting than a bar chart!
+      type: 'polarArea',
       data: {
-        labels: labels,
+        labels,
         datasets: [{
-          data: data,
+          data,
           backgroundColor: backgroundColors,
-          borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+          borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
           borderWidth: 1,
         }]
       },
@@ -135,27 +177,29 @@ export default apiInitializer("0.11.1", (api) => {
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'right',
-            labels: {
-              font: {
-                size: 11
-              },
-              boxWidth: 15
+            display: false
+          },
+          title: {
+            display: true,
+            text: chartTitle,
+            font: {
+              size: 20,
+              weight: 'bold'
+            },
+            color: returnPrimaryColor(),
+            padding: {
+              bottom: 10
             }
           },
           tooltip: {
             backgroundColor: 'rgba(0,0,0,0.8)',
-            titleFont: {
-              size: 13
-            },
-            bodyFont: {
-              size: 12
-            },
+            titleFont: { size: 13 },
+            bodyFont: { size: 12 },
             callbacks: {
-              label: function(context) {
+              label: (context) => {
                 const count = context.raw;
-                const percentage = Math.round((count / data.reduce((a, b) => a + b, 0)) * 100);
-                return `${count} ideas (${percentage}%)`;
+                const percent = Math.round((count / data.reduce((a, b) => a + b, 0)) * 100);
+                return `${count} ideas (${percent}%)`;
               }
             }
           }
@@ -163,283 +207,178 @@ export default apiInitializer("0.11.1", (api) => {
         scales: {
           r: {
             ticks: {
-              display: false,
+              display: false
             },
-            grid: {
-              color: 'rgba(0,0,0,0.05)'
-            },
-            angleLines: {
-              color: 'rgba(0,0,0,0.1)'
+            grid: { color: returnPrimaryColor() },
+            angleLines: { color: returnPrimaryColor() },
+            pointLabels: {
+              display: true,
+              centerPointLabels: true,
+              color: returnPrimaryColor(),
+              font: {
+                size: 14
+              }
             }
           }
         },
         animation: {
-          duration: 800,
+          easing: 'easeInBounce',
+          duration: 1000,
           animateRotate: true,
           animateScale: true
         }
       }
     });
   };
+  
 
-  // Helper function to check if we're in an enabled category or have an enabled tag
-  const shouldEnableIdeasPortal = () => {
-    // First check for category
-    const currentCategory = getCurrentCategoryInfo();
-    if (currentCategory) {
-      return { isEnabled: true, type: 'category', info: currentCategory };
-    }
-
-    // If not in an enabled category, check for tags
-    if (enabledTags.length > 0) {
-      // Check the current URL for tag information
-      const tagMatch = window.location.pathname.match(/\/tag\/([^\/]+)/);
-      if (tagMatch && tagMatch[1]) {
-        const tagName = decodeURIComponent(tagMatch[1]);
-        console.log(`Ideas Portal: Checking if tag '${tagName}' is enabled`);
-        
-        // Check if this tag is in our enabled list
-        if (enabledTags.includes(tagName)) {
-          console.log(`Ideas Portal: Found enabled tag: ${tagName}`);
-          return { isEnabled: true, type: 'tag', info: tagName };
-        }
-      }
-    }
-    
-    return { isEnabled: false };
-  };
-
-  // Helper function to get current category info using the discovery service
   const getCurrentCategoryInfo = () => {
-    // Use the discovery service instead of the deprecated controller
     const discoveryService = api.container.lookup("service:discovery");
-    if (!discoveryService) {
-      console.log("Ideas Portal: Could not find discovery service");
-      return null;
-    }
-    
-    // Check if we're on a category route
-    if (!discoveryService.category) {
-      console.log("Ideas Portal: Not on a category page");
-      return null;
-    }
-    
-    // Get the current category from the discoveryService
+    if (!discoveryService?.category) return null;
     const category = discoveryService.category;
-    const categoryId = category?.id;
-    
-    if (!categoryId) {
-      console.log("Ideas Portal: No category ID found");
-      return null;
-    }
-    
-    console.log(`Ideas Portal: Current category ID: ${categoryId}, Enabled categories: ${enabledCategories}`);
-    
-    // Check if this category is in our enabled list
-    if (!enabledCategories.includes(categoryId)) {
-      console.log(`Ideas Portal: Category ${categoryId} not in enabled list`);
-      return null;
-    }
-    
-    console.log(`Ideas Portal: Found enabled category: ${category.name} (${category.id})`);
-    return category;
+    return enabledCategories.includes(category.id) ? category : null;
   };
 
-  // When page changes, apply our customizations
-  api.onPageChange(() => {
-    console.log("Ideas Portal: Page changed");
-    
-    // Check if we should enable the Ideas Portal
-    const { isEnabled, type, info } = shouldEnableIdeasPortal();
-    
-    // Find any existing ideas-tag-filters
+  // The rest of your original logic remains intact...
+  // We'll now merge this logic into the main page change hook.
+
+  api.onPageChange(async () => {
+        // Use requestAnimationFrame to ensure the DOM is fully loaded
+        requestAnimationFrame(() => {
+          // Define an array of objects with the class and new text for each link
+          const navLinks = [
+            { className: "top", newText: "Most Active" },
+            { className: "votes", newText: "Most Voted" },
+            { className: "latest", newText: "Recently Active" },
+          ];
+
+          navLinks.forEach(({ className, newText }) => {
+            // Select the <li> element with the specified class
+            const listItem = document.querySelector(`li.${className}`);
+
+            if (listItem) {
+              // Select the <a> tag within the list item
+              const link = listItem.querySelector("a");
+
+              // Ensure the <a> tag exists and contains the expected text
+              if (link && link.textContent.trim() === className.charAt(0).toUpperCase() + className.slice(1)) {
+                link.textContent = newText;
+              }
+            }
+          });
+        });
+
+    const currentCategory = getCurrentCategoryInfo();
     const existingFilters = document.querySelector('.ideas-tag-filters');
-    
-    // Remove ideas-portal-category class from body if we're not in an enabled category or tag
-    if (!isEnabled) {
+
+    if (!currentCategory) {
       document.body.classList.remove("ideas-portal-category");
-      
-      // Clean up any existing filter elements if we're not in an ideas category/tag
-      if (existingFilters) {
-        existingFilters.remove();
-        console.log("Ideas Portal: Removed filter box when leaving ideas category/tag");
+      currentCategoryId = null;
+      if (existingFilters) existingFilters.remove();
+      if (window.ideasStatusChart) {
+        window.ideasStatusChart.destroy();
+        window.ideasStatusChart = null;
       }
       return;
     }
-    
-    // We're in an enabled category or tag, add the class
-    document.body.classList.add("ideas-portal-category");
-    
-    // Find the custom banner title element
-    const bannerTitle = document.querySelector(".custom-banner__title");
-    if (bannerTitle) {
-      // Get the current title text (this is usually the parent category name)
-      const originalTitle = bannerTitle.textContent.trim();
-      
-      if (type === 'category') {
-        // Handle category banner
-        const currentCategory = info;
-        // Get parent category name if available
-        let parentName = "";
-        if (currentCategory.parent_category_id) {
-          const siteCategories = api.container.lookup("site:main").categories;
-          const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-          if (parentCategory) {
-            parentName = parentCategory.name;
-          }
-        }
-        
-        // If we have a parent and the title doesn't already include both parent and category names
-        if (parentName && !originalTitle.includes(currentCategory.name)) {
-          // Set title to "Parent Category"
-          bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
-          console.log(`Ideas Portal: Updated banner title to "${bannerTitle.textContent}"`);
-        }
-      } else if (type === 'tag') {
-        // Handle tag banner
-        const tagName = info;
-        // Set title to "Ideas tagged with {tag}"
-        bannerTitle.textContent = `Ideas tagged with "${tagName}"`;
-        console.log(`Ideas Portal: Updated banner title for tag "${tagName}"`);
-      }
+
+    if (existingFilters) {
+      existingFilters.remove();
     }
     
-    // 1. Change tag text to proper casing
+    currentCategoryId = currentCategory.id;
+    
+
+    document.body.classList.add("ideas-portal-category");
+
+    // Apply tagMap text updates
     document.querySelectorAll('[data-tag-name]').forEach(el => {
       const tag = el.getAttribute('data-tag-name');
       if (tag && tagMap[tag]) {
         el.textContent = tagMap[tag];
       }
     });
-    
-    // 2. Add tag filters if they don't exist yet
-    if (existingFilters) {
-      console.log("Ideas Portal: Filter box already exists, not adding again");
-      return;
-    }
-    
-    console.log("Ideas Portal: Creating filter box");
-    
-    // Create filter container
-    const container = document.createElement('div');
-    container.className = 'ideas-tag-filters list-controls';
-    
-    // Add title
-    const title = document.createElement('h3');
-    title.className = 'ideas-filter-title';
-    title.textContent = 'Filter by Status';
-    container.appendChild(title);
-    
-    // Add status count visualization container
-    const statusVisualization = document.createElement('div');
-    statusVisualization.className = 'ideas-status-visualization';
-    container.appendChild(statusVisualization);
-    
-    // Prepare URLs for filters
-    let baseFilterUrl;
-    if (type === 'category') {
-      const currentCategory = info;
-      const categorySlug = currentCategory.slug;
-      let parentSlug = "";
-      
-      // Get parent category info if available
+
+    // Update banner title
+    const bannerTitle = document.querySelector(".custom-banner__title");
+    if (bannerTitle) {
+      const originalTitle = bannerTitle.textContent.trim();
+      let parentName = "";
       if (currentCategory.parent_category_id) {
         const siteCategories = api.container.lookup("site:main").categories;
         const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-        if (parentCategory) {
-          parentSlug = `${parentCategory.slug}/`;
-        }
+        if (parentCategory) parentName = parentCategory.name;
       }
-      
-      // Add reset filter for category
-      const resetFilter = document.createElement('a');
-      resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
-      resetFilter.className = 'tag-filter tag-filter-reset';
-      resetFilter.textContent = 'Show All';
-      container.appendChild(resetFilter);
-      
-      baseFilterUrl = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/`;
-    } else if (type === 'tag') {
-      const tagName = info;
-      
-      // Add reset filter for tag
-      const resetFilter = document.createElement('a');
-      resetFilter.href = `/tag/${tagName}`;
-      resetFilter.className = 'tag-filter tag-filter-reset';
-      resetFilter.textContent = 'Show All';
-      container.appendChild(resetFilter);
-      
-      baseFilterUrl = `/tags/intersection/${tagName}/`;
-    }
-    
-    // Add status tag filters and count topics with each tag
-    const statusCounts = {};
-    
-    // Initialize counts to zero
-    Object.keys(tagMap).forEach(tag => {
-      statusCounts[tag] = 0;
-    });
-    
-    // Count topics with each tag
-    try {
-      // Get all topic elements in the list
-      const topicElements = document.querySelectorAll(".topic-list-item");
-      
-      console.log(`Ideas Portal: Found ${topicElements.length} topic elements`);
-      
-      // If we don't have any elements to count, use sample data for visualization
-      if (topicElements.length === 0) {
-        // Sample data for visualization demonstration
-        statusCounts["new"] = 3;
-        statusCounts["planned"] = 2;
-        statusCounts["in-progress"] = 1;
-        statusCounts["completed"] = 2;
-        statusCounts["under-review"] = 1;
-        console.log("Ideas Portal: Using sample data for visualization");
-      } else {
-        topicElements.forEach(topicEl => {
-          const tagElements = topicEl.querySelectorAll("[data-tag-name]");
-          
-          tagElements.forEach(tagEl => {
-            const tagName = tagEl.getAttribute("data-tag-name");
-            if (tagName && statusCounts.hasOwnProperty(tagName)) {
-              statusCounts[tagName]++;
-            }
-          });
-        });
+      if (parentName && !originalTitle.includes(currentCategory.name)) {
+        bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
       }
-      
-      console.log("Ideas Portal: Status counts:", statusCounts);
-    } catch (e) {
-      console.error("Ideas Portal: Error counting statuses:", e);
     }
-    
-    // Add status tag filters without counts
+
+    // Render filters and chart
+    const container = document.createElement('div');
+    container.className = 'ideas-tag-filters list-controls';
+    const title = document.createElement('h3');
+    title.className = 'ideas-filter-title';
+    container.appendChild(title);
+
+    const statusVisualization = document.createElement('div');
+    statusVisualization.className = 'ideas-status-visualization';
+    container.appendChild(statusVisualization);
+
+    const categorySlug = currentCategory.slug;
+    let parentSlug = "";
+    if (currentCategory.parent_category_id) {
+      const siteCategories = api.container.lookup("site:main").categories;
+      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+      if (parentCategory) parentSlug = `${parentCategory.slug}/`;
+    }
+
+    // Create the div to wrap all filter buttons
+    const filtersWrapper = document.createElement('div');
+    filtersWrapper.className = 'filter-buttons';
+
+    const resetFilter = document.createElement('a');
+    resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
+    resetFilter.className = 'tag-filter tag-filter-reset';
+    resetFilter.textContent = 'Show All';
+    container.appendChild(resetFilter);
+    filtersWrapper.appendChild(resetFilter);
+
     Object.keys(tagMap).forEach(tag => {
       const filter = document.createElement('a');
-      filter.href = `${baseFilterUrl}${tag}`;
+      filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
       filter.className = 'tag-filter';
       filter.setAttribute('data-tag-name', tag);
-      filter.textContent = tagMap[tag]; // Just the name without count
-      container.appendChild(filter);
+      filter.textContent = tagMap[tag];
+      filtersWrapper.appendChild(filter);
     });
-    
-    // Create the status visualization after we have the counts
-    createStatusVisualization(statusCounts, statusVisualization);
-    
-    // Insert the filter container after the navigation container
+    container.appendChild(filtersWrapper);
+
     const target = document.querySelector('.navigation-container');
     if (target) {
       target.insertAdjacentElement('afterend', container);
-      
-      // Force visualization to be visible
-      setTimeout(() => {
-        const viz = document.querySelector('.ideas-status-visualization');
-        if (viz) {
-          viz.style.display = 'block';
-          console.log("Ideas Portal: Visualization container is visible");
-        }
-      }, 100);
     }
+
+    try {
+      const topics = await fetchAllTopicsInCategory(currentCategory.id);
+      const statusCounts = buildStatusCounts(topics);
+      createStatusVisualization(statusCounts, statusVisualization);
+    } catch (e) {
+      console.error("Ideas Portal: Failed to load topics for static chart:", e);
+    }
+  });
+
+  api.cleanupStream(() => {
+    if (window.ideasPortalObserver) {
+      window.ideasPortalObserver.disconnect();
+      window.ideasPortalObserver = null;
+    }
+    if (window.ideasStatusChart) {
+      window.ideasStatusChart.destroy();
+      window.ideasStatusChart = null;
+    }
+    document.body.classList.remove("ideas-portal-category");
+    const existingFilters = document.querySelector('.ideas-tag-filters');
+    if (existingFilters) existingFilters.remove();
   });
 });
