@@ -83,32 +83,13 @@
 .ideas-portal-category [data-tag-name="completed"],
 .ideas-portal-category [data-tag-name="not-planned"] {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 4px 8px;
   border-radius: 16px;
   font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
   color: white;
   margin-right: 4px;
-}
-
-.topic-list [data-tag-name="new"],
-.topic-list [data-tag-name="planned"],
-.topic-list [data-tag-name="in-progress"],
-.topic-list [data-tag-name="already-exists"],
-.topic-list [data-tag-name="under-review"],
-.topic-list [data-tag-name="completed"],
-.topic-list [data-tag-name="not-planned"] {
-  display: inline-block !important;
-  padding: 2px 8px !important;
-  border-radius: 16px !important;
-  font-size: 0.75rem !important;
-  font-weight: bold !important;
-  text-transform: uppercase !important;
-  color: white !important;
-  margin-right: 4px !important;
-  text-align: center !important;
-  vertical-align: middle !important;
 }
 
 .ideas-portal-category .ideas-tag-filters .tag-filter {
@@ -137,6 +118,21 @@
   display: none;
 }
 
+/* Change topic list header */
+.ideas-portal-category .topic-list-header span:first-of-type::before {
+  content: "Ideas";
+}
+
+.ideas-portal-category .topic-list-header span:first-of-type {
+  color: transparent;
+  position: relative;
+}
+
+.ideas-portal-category .topic-list-header span:first-of-type::before {
+  position: absolute;
+  left: 0;
+  color: var(--primary-medium);
+}
 
 /* Hover animations */
 .ideas-portal-category .ideas-tag-filters .tag-filter {
