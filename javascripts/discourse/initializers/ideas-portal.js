@@ -348,19 +348,6 @@ export default apiInitializer("0.11.1", (api) => {
           bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
         }
       }
-      
-      // ... rest of category-specific setup code ...
-
-      try {
-        const topics = await fetchAllTopicsInCategory(currentCategory.id);
-        const statusCounts = buildStatusCounts(topics);
-        createStatusVisualization(statusCounts, statusVisualization);
-      } catch (e) {
-        console.error("Ideas Portal: Failed to load topics for static chart:", e);
-      }
-    } else {
-      // We're on a tag page
-      // Add any tag-specific functionality here if needed
     }
 
     // Render filters and chart
@@ -403,6 +390,15 @@ export default apiInitializer("0.11.1", (api) => {
         filter.textContent = tagMap[tag];
         filtersWrapper.appendChild(filter);
       });
+      
+      // Try to fetch topics and create visualization
+      try {
+        const topics = await fetchAllTopicsInCategory(currentCategory.id);
+        const statusCounts = buildStatusCounts(topics);
+        createStatusVisualization(statusCounts, statusVisualization);
+      } catch (e) {
+        console.error("Ideas Portal: Failed to load topics for static chart:", e);
+      }
     } else {
       // Tag page specific code
       const currentTag = api.container.lookup("controller:tags.show")?.tag;
@@ -422,6 +418,15 @@ export default apiInitializer("0.11.1", (api) => {
           filter.textContent = tagMap[tag];
           filtersWrapper.appendChild(filter);
         });
+        
+        // TODO: Could implement tag-specific visualization in the future
+        // For now, we'll just display a message in the visualization area
+        const noTagVisualization = document.createElement('div');
+        noTagVisualization.className = 'no-tag-visualization';
+        noTagVisualization.innerHTML = `<p style="text-align: center; padding: 20px; color: var(--primary-medium); font-style: italic;">
+          Ideas visualization is currently available only in category view.
+        </p>`;
+        statusVisualization.appendChild(noTagVisualization);
       }
     }
     
