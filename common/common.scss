@@ -118,11 +118,6 @@
   display: none;
 }
 
-/* Change topic list header */
-.ideas-portal-category .topic-list-header span:first-of-type::before {
-  content: "Ideas";
-}
-
 .ideas-portal-category .topic-list-header span:first-of-type {
   color: transparent;
   position: relative;
