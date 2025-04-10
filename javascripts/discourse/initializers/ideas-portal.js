@@ -255,7 +255,7 @@ export default apiInitializer("0.11.1", (api) => {
               precision: 0,
               color: returnPrimaryColor(),
               font: {
-                size: 12
+                size: 16
               }
             }
           }
