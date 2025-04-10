@@ -249,7 +249,7 @@ export default apiInitializer("0.11.1", (api) => {
           y: {
             beginAtZero: true,
             grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
+              color: returnPrimaryColor()
             },
             ticks: {
               precision: 0,
