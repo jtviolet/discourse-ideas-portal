@@ -6,6 +6,10 @@ export default apiInitializer("0.11.1", (api) => {
   const enabledCategories = settings.enabled_categories
     ? settings.enabled_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
+    
+  const enabledTags = settings.enabled_tags
+    ? settings.enabled_tags.split("|").map(tag => tag.trim()).filter(tag => tag.length > 0)
+    : [];
 
   let currentCategoryId = null;
 
@@ -238,15 +242,34 @@ export default apiInitializer("0.11.1", (api) => {
     const category = discoveryService.category;
     return enabledCategories.includes(category.id) ? category : null;
   };
+  
+  const isEnabledTagPage = () => {
+    if (enabledTags.length === 0) return false;
+    
+    // Check if we're on a tag page
+    const currentRoute = api.container.lookup("service:router").currentRouteName;
+    if (!currentRoute.includes("tags.show")) return false;
+    
+    // Get the current tag
+    const currentTag = api.container.lookup("controller:tags.show")?.tag;
+    if (!currentTag) return false;
+    
+    return enabledTags.includes(currentTag);
+  };
+  
+  const shouldEnableComponent = () => {
+    // Check if we're on either an enabled category page or an enabled tag page
+    return getCurrentCategoryInfo() !== null || isEnabledTagPage();
+  };
 
   // The rest of your original logic remains intact...
   // We'll now merge this logic into the main page change hook.
 
   api.onPageChange(async () => {
-    const currentCategory = getCurrentCategoryInfo();
+    const shouldEnable = shouldEnableComponent();
     const existingFilters = document.querySelector('.ideas-tag-filters');
 
-    if (!currentCategory) {
+    if (!shouldEnable) {
       document.body.classList.remove("ideas-portal-category");
       currentCategoryId = null;
       if (existingFilters) existingFilters.remove();
@@ -257,6 +280,8 @@ export default apiInitializer("0.11.1", (api) => {
       return;
     }
 
+    const currentCategory = getCurrentCategoryInfo();
+    
     // Use requestAnimationFrame to ensure the DOM is fully loaded
     requestAnimationFrame(() => {
       // Define an array of objects with the class and new text for each link
@@ -292,9 +317,11 @@ export default apiInitializer("0.11.1", (api) => {
       existingFilters.remove();
     }
     
-    currentCategoryId = currentCategory.id;
+    // Only set currentCategoryId if we're on a category page
+    if (currentCategory) {
+      currentCategoryId = currentCategory.id;
+    }
     
-
     document.body.classList.add("ideas-portal-category");
 
     // Apply tagMap text updates
@@ -305,19 +332,35 @@ export default apiInitializer("0.11.1", (api) => {
       }
     });
 
-    // Update banner title
-    const bannerTitle = document.querySelector(".custom-banner__title");
-    if (bannerTitle) {
-      const originalTitle = bannerTitle.textContent.trim();
-      let parentName = "";
-      if (currentCategory.parent_category_id) {
-        const siteCategories = api.container.lookup("site:main").categories;
-        const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-        if (parentCategory) parentName = parentCategory.name;
+    // Rest of the existing code for category pages
+    if (currentCategory) {
+      // Update banner title
+      const bannerTitle = document.querySelector(".custom-banner__title");
+      if (bannerTitle) {
+        const originalTitle = bannerTitle.textContent.trim();
+        let parentName = "";
+        if (currentCategory.parent_category_id) {
+          const siteCategories = api.container.lookup("site:main").categories;
+          const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+          if (parentCategory) parentName = parentCategory.name;
+        }
+        if (parentName && !originalTitle.includes(currentCategory.name)) {
+          bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
+        }
       }
-      if (parentName && !originalTitle.includes(currentCategory.name)) {
-        bannerTitle.textContent = `${parentName} ${currentCategory.name}`;
+      
+      // ... rest of category-specific setup code ...
+
+      try {
+        const topics = await fetchAllTopicsInCategory(currentCategory.id);
+        const statusCounts = buildStatusCounts(topics);
+        createStatusVisualization(statusCounts, statusVisualization);
+      } catch (e) {
+        console.error("Ideas Portal: Failed to load topics for static chart:", e);
       }
+    } else {
+      // We're on a tag page
+      // Add any tag-specific functionality here if needed
     }
 
     // Render filters and chart
@@ -331,46 +374,62 @@ export default apiInitializer("0.11.1", (api) => {
     statusVisualization.className = 'ideas-status-visualization';
     container.appendChild(statusVisualization);
 
-    const categorySlug = currentCategory.slug;
-    let parentSlug = "";
-    if (currentCategory.parent_category_id) {
-      const siteCategories = api.container.lookup("site:main").categories;
-      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-      if (parentCategory) parentSlug = `${parentCategory.slug}/`;
-    }
-
     // Create the div to wrap all filter buttons
     const filtersWrapper = document.createElement('div');
     filtersWrapper.className = 'filter-buttons';
 
-    const resetFilter = document.createElement('a');
-    resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
-    resetFilter.className = 'tag-filter tag-filter-reset';
-    resetFilter.textContent = 'Show All';
-    container.appendChild(resetFilter);
-    filtersWrapper.appendChild(resetFilter);
+    if (currentCategory) {
+      // Category-specific code
+      const categorySlug = currentCategory.slug;
+      let parentSlug = "";
+      if (currentCategory.parent_category_id) {
+        const siteCategories = api.container.lookup("site:main").categories;
+        const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
+        if (parentCategory) parentSlug = `${parentCategory.slug}/`;
+      }
 
-    Object.keys(tagMap).forEach(tag => {
-      const filter = document.createElement('a');
-      filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
-      filter.className = 'tag-filter';
-      filter.setAttribute('data-tag-name', tag);
-      filter.textContent = tagMap[tag];
-      filtersWrapper.appendChild(filter);
-    });
+      const resetFilter = document.createElement('a');
+      resetFilter.href = `/c/${parentSlug}${categorySlug}/${currentCategory.id}`;
+      resetFilter.className = 'tag-filter tag-filter-reset';
+      resetFilter.textContent = 'Show All';
+      container.appendChild(resetFilter);
+      filtersWrapper.appendChild(resetFilter);
+
+      Object.keys(tagMap).forEach(tag => {
+        const filter = document.createElement('a');
+        filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
+        filter.className = 'tag-filter';
+        filter.setAttribute('data-tag-name', tag);
+        filter.textContent = tagMap[tag];
+        filtersWrapper.appendChild(filter);
+      });
+    } else {
+      // Tag page specific code
+      const currentTag = api.container.lookup("controller:tags.show")?.tag;
+      if (currentTag) {
+        const resetFilter = document.createElement('a');
+        resetFilter.href = `/tag/${currentTag}`;
+        resetFilter.className = 'tag-filter tag-filter-reset';
+        resetFilter.textContent = 'Show All';
+        container.appendChild(resetFilter);
+        filtersWrapper.appendChild(resetFilter);
+
+        Object.keys(tagMap).forEach(tag => {
+          const filter = document.createElement('a');
+          filter.href = `/tags/intersection/${currentTag}/${tag}`;
+          filter.className = 'tag-filter';
+          filter.setAttribute('data-tag-name', tag);
+          filter.textContent = tagMap[tag];
+          filtersWrapper.appendChild(filter);
+        });
+      }
+    }
+    
     container.appendChild(filtersWrapper);
 
     const target = document.querySelector('.navigation-container');
     if (target) {
       target.insertAdjacentElement('afterend', container);
-    }
-
-    try {
-      const topics = await fetchAllTopicsInCategory(currentCategory.id);
-      const statusCounts = buildStatusCounts(topics);
-      createStatusVisualization(statusCounts, statusVisualization);
-    } catch (e) {
-      console.error("Ideas Portal: Failed to load topics for static chart:", e);
     }
   });
 
