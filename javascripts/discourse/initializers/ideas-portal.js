@@ -248,10 +248,29 @@ export default apiInitializer("0.11.1", (api) => {
     
     // Check if we're on a tag page
     const currentRoute = api.container.lookup("service:router").currentRouteName;
-    if (!currentRoute.includes("tags.show")) return false;
+    // Check for both "tags.show" and "tag.show" route patterns
+    if (!currentRoute.includes("tag")) return false;
     
     // Get the current tag
-    const currentTag = api.container.lookup("controller:tags.show")?.tag;
+    let currentTag;
+    
+    // Try both controllers since different Discourse versions might use different patterns
+    const tagsShowController = api.container.lookup("controller:tags.show");
+    const tagShowController = api.container.lookup("controller:tag.show");
+    
+    if (tagsShowController && tagsShowController.tag) {
+      currentTag = tagsShowController.tag;
+    } else if (tagShowController && tagShowController.tag) {
+      currentTag = tagShowController.tag;
+    } else {
+      // Last resort: try to extract tag from URL
+      const path = window.location.pathname;
+      const tagMatch = path.match(/\/tag\/([^\/]+)/);
+      if (tagMatch && tagMatch[1]) {
+        currentTag = tagMatch[1];
+      }
+    }
+    
     if (!currentTag) return false;
     
     return enabledTags.includes(currentTag);
@@ -401,7 +420,25 @@ export default apiInitializer("0.11.1", (api) => {
       }
     } else {
       // Tag page specific code
-      const currentTag = api.container.lookup("controller:tags.show")?.tag;
+      let currentTag;
+      
+      // Try both controllers since different Discourse versions might use different patterns
+      const tagsShowController = api.container.lookup("controller:tags.show");
+      const tagShowController = api.container.lookup("controller:tag.show");
+      
+      if (tagsShowController && tagsShowController.tag) {
+        currentTag = tagsShowController.tag;
+      } else if (tagShowController && tagShowController.tag) {
+        currentTag = tagShowController.tag;
+      } else {
+        // Last resort: try to extract tag from URL
+        const path = window.location.pathname;
+        const tagMatch = path.match(/\/tag\/([^\/]+)/);
+        if (tagMatch && tagMatch[1]) {
+          currentTag = tagMatch[1];
+        }
+      }
+      
       if (currentTag) {
         const resetFilter = document.createElement('a');
         resetFilter.href = `/tag/${currentTag}`;
