@@ -379,8 +379,8 @@ export default apiInitializer("0.11.1", (api) => {
     document.body.classList.add("ideas-portal-category");
 
     // Apply tagMap text updates
-    document.querySelectorAll('[data-tag-name2]').forEach(el => {
-      const tag = el.getAttribute('data-tag-name2');
+    document.querySelectorAll('[data-tag-name]').forEach(el => {
+      const tag = el.getAttribute('data-tag-name');
       if (tag && tagMap[tag]) {
         el.textContent = tagMap[tag];
       }
@@ -440,7 +440,7 @@ export default apiInitializer("0.11.1", (api) => {
         const filter = document.createElement('a');
         filter.href = `/tags/c/${parentSlug}${categorySlug}/${currentCategory.id}/${tag}`;
         filter.className = 'tag-filter';
-        filter.setAttribute('data-tag-name2', tag);
+        filter.setAttribute('data-tag-name', tag);
         filter.textContent = tagMap[tag];
         filtersWrapper.appendChild(filter);
       });
@@ -486,7 +486,7 @@ export default apiInitializer("0.11.1", (api) => {
           const filter = document.createElement('a');
           filter.href = `/tags/intersection/${currentTag}/${tag}`;
           filter.className = 'tag-filter';
-          filter.setAttribute('data-tag-name2', tag);
+          filter.setAttribute('data-tag-name', tag);
           filter.textContent = tagMap[tag];
           filtersWrapper.appendChild(filter);
         });
