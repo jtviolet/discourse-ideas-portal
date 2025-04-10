@@ -3,6 +3,12 @@
 import { apiInitializer } from "discourse/lib/api";
 
 export default apiInitializer("0.11.1", (api) => {
+
+  api.registerValueTransformer("topic-list-header-text", ({ value, context }) => {
+    // Replace "Topic" with "Ideas"
+    return value === "Topic" ? "Ideas" : value;
+  });
+  
   const enabledCategories = settings.ideas_portal_categories
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
@@ -265,27 +271,6 @@ export default apiInitializer("0.11.1", (api) => {
                 link.textContent = newText;
               }
             }
-          });
-
-          // Replace "Topic" with "Ideas" in the topic list header
-          document.querySelector('table.topic-list th.topic-list-data.default span').textContent = "Ideas";
-          // Get a reference to the button
-          const bulkSelectButton = document.querySelector('button.btn-flat.bulk-select');
-
-          // Get a reference to the span that contains the text
-          const headerSpan = document.querySelector('table.topic-list th.topic-list-data.default span');
-
-          // Add a click event listener to the button
-          bulkSelectButton.addEventListener('click', function() {
-            // Check if the text is currently visible (not hidden by the button UI)
-            // This assumes the text is hidden when the buttons are visible
-            setTimeout(function() {
-              // Small delay to let any UI changes finish
-              if (headerSpan && headerSpan.style.display !== 'none') {
-                // If the span is visible, set its text to "Ideas"
-                headerSpan.textContent = 'Ideas';
-              }
-            }, 100);
           });
         });
 
