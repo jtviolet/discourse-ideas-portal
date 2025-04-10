@@ -118,16 +118,6 @@
   display: none;
 }
 
-.ideas-portal-category .topic-list-header span:first-of-type {
-  color: transparent;
-  position: relative;
-}
-
-.ideas-portal-category .topic-list-header span:first-of-type::before {
-  position: absolute;
-  left: 0;
-  color: var(--primary-medium);
-}
 
 /* Hover animations */
 .ideas-portal-category .ideas-tag-filters .tag-filter {
