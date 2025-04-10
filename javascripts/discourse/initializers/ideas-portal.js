@@ -252,6 +252,7 @@ export default apiInitializer("0.11.1", (api) => {
               color: 'rgba(0, 0, 0, 0.1)'
             },
             ticks: {
+              precision: 0,
               color: returnPrimaryColor(),
               font: {
                 size: 12
