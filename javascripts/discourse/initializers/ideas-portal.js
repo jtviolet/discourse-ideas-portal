@@ -266,10 +266,10 @@ export default apiInitializer("0.11.1", (api) => {
               }
             }
           });
-        });
 
-        // Replace "Topic" with "Ideas" in the topic list header
-        document.querySelector('table.topic-list > thead.topic-list-header > tr > th.topic-list-data > span').textContent = "Ideas";
+          // Replace "Topic" with "Ideas" in the topic list header
+          document.querySelector('table.topic-list th.topic-list-data.default span').textContent = "Ideas";
+        });
 
     const currentCategory = getCurrentCategoryInfo();
     const existingFilters = document.querySelector('.ideas-tag-filters');
