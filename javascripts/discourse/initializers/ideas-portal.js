@@ -267,10 +267,9 @@ export default apiInitializer("0.11.1", (api) => {
             }
           });
 
-          api.registerValueTransformer("topic-list-header-text", ({ value, context }) => {
-            // Replace "Topic" with "Ideas"
-            return value === "Topic" ? "Ideas" : value;
-          });
+          // Replace "Topic" with "Ideas" in the topic list header
+          document.querySelector('table.topic-list th.topic-list-data.default span').textContent = "Ideas";
+          
         });
 
     const currentCategory = getCurrentCategoryInfo();
