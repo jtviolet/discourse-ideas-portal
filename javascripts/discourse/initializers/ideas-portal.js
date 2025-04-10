@@ -266,6 +266,9 @@ export default apiInitializer("0.11.1", (api) => {
               }
             }
           });
+
+          // Replace "Topic" with "Ideas" in the topic list header
+          document.querySelector('table.topic-list > thead.topic-list-header > tr > th.topic-list-data > span').textContent = "Ideas";
         });
 
     const currentCategory = getCurrentCategoryInfo();
