@@ -185,7 +185,7 @@ export default apiInitializer("0.11.1", (api) => {
       const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
       return primaryColor;
     };
-
+  
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
   
@@ -198,6 +198,8 @@ export default apiInitializer("0.11.1", (api) => {
           backgroundColor: backgroundColors,
           borderColor: backgroundColors.map(c => c.replace('0.7', '1')),
           borderWidth: 1,
+          borderRadius: 6,
+          borderSkipped: false,
         }]
       },
       options: {
