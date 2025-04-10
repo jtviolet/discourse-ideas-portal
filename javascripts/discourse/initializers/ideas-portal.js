@@ -3,12 +3,6 @@
 import { apiInitializer } from "discourse/lib/api";
 
 export default apiInitializer("0.11.1", (api) => {
-
-  api.registerValueTransformer("topic-list-header-text", ({ value, context }) => {
-    // Replace "Topic" with "Ideas"
-    return value === "Topic" ? "Ideas" : value;
-  });
-  
   const enabledCategories = settings.ideas_portal_categories
     ? settings.ideas_portal_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
@@ -271,6 +265,11 @@ export default apiInitializer("0.11.1", (api) => {
                 link.textContent = newText;
               }
             }
+          });
+
+          api.registerValueTransformer("topic-list-header-text", ({ value, context }) => {
+            // Replace "Topic" with "Ideas"
+            return value === "Topic" ? "Ideas" : value;
           });
         });
 
