@@ -305,6 +305,9 @@ export default apiInitializer("0.11.1", (api) => {
     return getCurrentCategoryInfo() !== null || isEnabledTagPage();
   };
 
+  if(isEnabledTagPage()) {
+    document.querySelector('.nav-item_categories').style.display = 'none';
+  }
   // The rest of your original logic remains intact...
   // We'll now merge this logic into the main page change hook.
 
