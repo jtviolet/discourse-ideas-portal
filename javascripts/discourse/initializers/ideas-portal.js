@@ -277,7 +277,15 @@ export default apiInitializer("0.11.1", (api) => {
 
           // Add a click event listener to the button
           bulkSelectButton.addEventListener('click', function() {
-            headerSpan.textContent = 'Ideas';
+            // Check if the text is currently visible (not hidden by the button UI)
+            // This assumes the text is hidden when the buttons are visible
+            setTimeout(function() {
+              // Small delay to let any UI changes finish
+              if (headerSpan && headerSpan.style.display !== 'none') {
+                // If the span is visible, set its text to "Ideas"
+                headerSpan.textContent = 'Ideas';
+              }
+            }, 100);
           });
         });
 
