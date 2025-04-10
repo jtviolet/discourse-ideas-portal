@@ -243,35 +243,6 @@ export default apiInitializer("0.11.1", (api) => {
   // We'll now merge this logic into the main page change hook.
 
   api.onPageChange(async () => {
-        // Use requestAnimationFrame to ensure the DOM is fully loaded
-        requestAnimationFrame(() => {
-          // Define an array of objects with the class and new text for each link
-          const navLinks = [
-            { className: "top", newText: "Most Active" },
-            { className: "votes", newText: "Most Voted" },
-            { className: "latest", newText: "Recently Active" },
-          ];
-
-          navLinks.forEach(({ className, newText }) => {
-            // Select the <li> element with the specified class
-            const listItem = document.querySelector(`li.${className}`);
-
-            if (listItem) {
-              // Select the <a> tag within the list item
-              const link = listItem.querySelector("a");
-
-              // Ensure the <a> tag exists and contains the expected text
-              if (link && link.textContent.trim() === className.charAt(0).toUpperCase() + className.slice(1)) {
-                link.textContent = newText;
-              }
-            }
-          });
-
-          // Replace "Topic" with "Ideas" in the topic list header
-          document.querySelector('table.topic-list th.topic-list-data.default span').textContent = "Ideas";
-
-        });
-
     const currentCategory = getCurrentCategoryInfo();
     const existingFilters = document.querySelector('.ideas-tag-filters');
 
@@ -285,6 +256,37 @@ export default apiInitializer("0.11.1", (api) => {
       }
       return;
     }
+
+    // Use requestAnimationFrame to ensure the DOM is fully loaded
+    requestAnimationFrame(() => {
+      // Define an array of objects with the class and new text for each link
+      const navLinks = [
+        { className: "top", newText: "Most Active" },
+        { className: "votes", newText: "Most Voted" },
+        { className: "latest", newText: "Recently Active" },
+      ];
+
+      navLinks.forEach(({ className, newText }) => {
+        // Select the <li> element with the specified class
+        const listItem = document.querySelector(`li.${className}`);
+
+        if (listItem) {
+          // Select the <a> tag within the list item
+          const link = listItem.querySelector("a");
+
+          // Ensure the <a> tag exists and contains the expected text
+          if (link && link.textContent.trim() === className.charAt(0).toUpperCase() + className.slice(1)) {
+            link.textContent = newText;
+          }
+        }
+      });
+
+      // Replace "Topic" with "Ideas" in the topic list header
+      const headerElement = document.querySelector('table.topic-list th.topic-list-data.default span');
+      if (headerElement) {
+        headerElement.textContent = "Ideas";
+      }
+    });
 
     if (existingFilters) {
       existingFilters.remove();
