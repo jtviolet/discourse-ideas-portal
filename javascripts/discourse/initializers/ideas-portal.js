@@ -172,14 +172,14 @@ export default apiInitializer("0.11.1", (api) => {
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
-      script.onload = () => createPolarChart(canvas, labels, data, backgroundColors, total);
+      script.onload = () => createBarChart(canvas, labels, data, backgroundColors, total);
       document.head.appendChild(script);
     } else {
-      createPolarChart(canvas, labels, data, backgroundColors, total);
+      createBarChart(canvas, labels, data, backgroundColors, total);
     }
   };
 
-  const createPolarChart = (canvas, labels, data, backgroundColors, total) => {
+  const createBarChart = (canvas, labels, data, backgroundColors, total) => {
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'}`;
     const returnPrimaryColor = () => {
       const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
@@ -188,9 +188,9 @@ export default apiInitializer("0.11.1", (api) => {
   
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-  
+    
     window.ideasStatusChart = new Chart(ctx, {
-      type: 'polarArea',
+      type: 'bar',
       data: {
         labels,
         datasets: [{
@@ -235,27 +235,33 @@ export default apiInitializer("0.11.1", (api) => {
           }
         },
         scales: {
-          r: {
-            ticks: {
+          x: {
+            grid: {
               display: false
             },
-            grid: { color: returnPrimaryColor() },
-            angleLines: { color: returnPrimaryColor() },
-            pointLabels: {
-              display: true,
-              centerPointLabels: true,
+            ticks: {
               color: returnPrimaryColor(),
               font: {
                 size: 14
               }
             }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.1)'
+            },
+            ticks: {
+              color: returnPrimaryColor(),
+              font: {
+                size: 12
+              }
+            }
           }
         },
         animation: {
-          easing: 'easeInBounce',
           duration: 1000,
-          animateRotate: true,
-          animateScale: true
+          easing: 'easeInOutQuart'
         }
       }
     });
