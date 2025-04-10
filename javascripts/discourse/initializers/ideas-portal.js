@@ -269,6 +269,16 @@ export default apiInitializer("0.11.1", (api) => {
 
           // Replace "Topic" with "Ideas" in the topic list header
           document.querySelector('table.topic-list th.topic-list-data.default span').textContent = "Ideas";
+          // Get a reference to the button
+          const bulkSelectButton = document.querySelector('button.btn-flat.bulk-select');
+
+          // Get a reference to the span that contains the text
+          const headerSpan = document.querySelector('table.topic-list th.topic-list-data.default span');
+
+          // Add a click event listener to the button
+          bulkSelectButton.addEventListener('click', function() {
+            headerSpan.textContent = 'Ideas';
+          });
         });
 
     const currentCategory = getCurrentCategoryInfo();
