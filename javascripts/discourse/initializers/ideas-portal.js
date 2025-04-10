@@ -486,8 +486,8 @@ export default apiInitializer("0.11.1", (api) => {
           const filter = document.createElement('a');
           filter.href = `/tags/intersection/${currentTag}/${tag}`;
           filter.className = 'tag-filter';
-          filter.setAttribute('data-tag-name', tag+tag);
-          filter.textContent = tagMap[tag+tag];
+          filter.setAttribute('data-tag-name', tag);
+          filter.textContent = tagMap[tag];
           filtersWrapper.appendChild(filter);
         });
         
