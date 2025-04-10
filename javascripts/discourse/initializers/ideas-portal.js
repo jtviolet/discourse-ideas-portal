@@ -46,6 +46,30 @@ export default apiInitializer("0.11.1", (api) => {
 
     return allTopics;
   };
+  
+  const fetchAllTopicsForTag = async (tagName) => {
+    const pageSize = 100;
+    let page = 0;
+    let allTopics = [];
+    let done = false;
+
+    while (!done) {
+      const response = await fetch(`/tag/${tagName}.json?page=${page}`);
+      if (!response.ok) break;
+
+      const data = await response.json();
+      const topics = data.topic_list.topics || [];
+
+      allTopics = allTopics.concat(topics);
+      if (topics.length < pageSize) {
+        done = true;
+      } else {
+        page++;
+      }
+    }
+
+    return allTopics;
+  };
 
   const buildStatusCounts = (topics) => {
     const counts = {};
@@ -456,14 +480,21 @@ export default apiInitializer("0.11.1", (api) => {
           filtersWrapper.appendChild(filter);
         });
         
-        // TODO: Could implement tag-specific visualization in the future
-        // For now, we'll just display a message in the visualization area
-        const noTagVisualization = document.createElement('div');
-        noTagVisualization.className = 'no-tag-visualization';
-        noTagVisualization.innerHTML = `<p style="text-align: center; padding: 20px; color: var(--primary-medium); font-style: italic;">
-          Ideas visualization is currently available only in category view.
-        </p>`;
-        statusVisualization.appendChild(noTagVisualization);
+        // Fetch and display visualization for tag page
+        try {
+          const topics = await fetchAllTopicsForTag(currentTag);
+          const statusCounts = buildStatusCounts(topics);
+          createStatusVisualization(statusCounts, statusVisualization);
+        } catch (e) {
+          console.error("Ideas Portal: Failed to load topics for tag chart:", e);
+          // Show fallback message if chart creation fails
+          const fallbackMessage = document.createElement('div');
+          fallbackMessage.className = 'no-tag-visualization';
+          fallbackMessage.innerHTML = `<p style="text-align: center; padding: 20px; color: var(--primary-medium); font-style: italic;">
+            Unable to load ideas visualization for this tag.
+          </p>`;
+          statusVisualization.appendChild(fallbackMessage);
+        }
       }
     }
     
