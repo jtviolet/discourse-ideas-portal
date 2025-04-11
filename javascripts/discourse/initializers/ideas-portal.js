@@ -33,7 +33,9 @@ export default apiInitializer("0.11.1", (api) => {
 
     // Separate status tags and non-status tags
     const statusTagsList = tagsArray.filter(tag => tagMap[tag]);
+    console.log("Status tags:", statusTagsList);
     const otherTags = tagsArray.filter(tag => !tagMap[tag]);
+    console.log("Other tags:", otherTags);
 
     // Sort status tags by a predefined order (you can adjust this order)
     const statusTagOrder = [
