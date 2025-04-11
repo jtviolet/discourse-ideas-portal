@@ -82,7 +82,7 @@ export default apiInitializer("0.8", (api) => {
       const allCategories = this.site.categories || [];
   
       // Only include categories from the enabled list
-      if (shouldEnableComponent()) {return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));}
+      return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
     }
   });
 
@@ -90,10 +90,7 @@ export default apiInitializer("0.8", (api) => {
     pluginId: "netwrix-hide-tags",
     
     get shouldRenderTagChooser() {
-        if (shouldEnableComponent()) {return false;}
+      return false;
     }
-  });
-  
-  
-  
+  });  
 });
