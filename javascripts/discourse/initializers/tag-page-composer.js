@@ -66,4 +66,24 @@ export default apiInitializer("0.8", (api) => {
       }
     }
   });
+
+  api.modifyClass("component:category-chooser", {
+    pluginId: "netwrix-ideas-category-filter",
+  
+    get content() {
+      if (shouldEnableComponent()) {
+      const enabledCategoryIds = settings.enabled_categories
+        ? settings.enabled_categories
+            .split("|")
+            .map(id => parseInt(id, 10))
+            .filter(id => !isNaN(id))
+        : [];
+  
+      // Get full site categories
+      const allCategories = this.site.categories || [];
+  
+      // Only include categories from the enabled list
+      return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
+    }}
+  });
 });
