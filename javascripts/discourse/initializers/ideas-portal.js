@@ -424,9 +424,6 @@ export default apiInitializer("0.11.1", (api) => {
             sortedTagNames.forEach((tagName, index) => {
               const el = tagMap.get(tagName);
               if (el) tagRow.appendChild(el);
-              if (index < sortedTagNames.length - 1) {
-                tagRow.appendChild(document.createTextNode(", "));
-              }
             });
           });
         });
