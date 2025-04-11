@@ -67,18 +67,24 @@ export default apiInitializer("0.8", (api) => {
     }
   });
 
-  api.modifyClass("component:composer-category", {
-    pluginId: "netwrix-ideas-portal-category-filter",
+  api.modifyClass("component:category-chooser", {
+    pluginId: "netwrix-ideas-category-filter",
   
-    get categories() {
-      const all = this.site.categories || [];
+    get content() {
+      const enabledCategoryIds = settings.enabled_categories
+        ? settings.enabled_categories
+            .split("|")
+            .map(id => parseInt(id, 10))
+            .filter(id => !isNaN(id))
+        : [];
   
-      // Only include categories with slug 'ideas'
-      //return all.filter((c) => c.slug === "ideas");
+      // Get full site categories
+      const allCategories = this.site.categories || [];
   
-      // Or for partial match:
-      return all.filter((c) => c.slug?.includes("ideas"));
+      // Only include categories from the enabled list
+      return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
     }
   });
+  
   
 });
