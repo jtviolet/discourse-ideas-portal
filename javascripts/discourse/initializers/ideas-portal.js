@@ -90,10 +90,10 @@ export default apiInitializer("0.11.1", (api) => {
 
   const createStatusVisualization = (statusCounts, container) => {
     if (!container) return;
-
+  
     container.innerHTML = '';
     const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-
+  
     if (total === 0) {
       const noIdeasMessage = document.createElement('div');
       noIdeasMessage.className = 'no-ideas-message';
@@ -111,65 +111,46 @@ export default apiInitializer("0.11.1", (api) => {
     } else {
       container.style.display = 'block';
     }
-
-    // Function to get parent category name
-    const getParentCategoryName = () => {
-      const currentCategory = getCurrentCategoryInfo();
-      if (!currentCategory || !currentCategory.parent_category_id) {
-        return null;
-      }
-      
-      const siteCategories = api.container.lookup("site:main").categories;
-      const parentCategory = siteCategories.find(cat => cat.id === currentCategory.parent_category_id);
-      
-      return parentCategory ? parentCategory.name : null;
-    };
-
-    // Then update your header creation code
+  
     const header = document.createElement('div');
     header.className = 'ideas-visualization-header';
-
-    // Get parent category name
-    // {n} ideas for {parentCategoryName} or {n} ideas for Total
-
     const chartContainer = document.createElement('div');
     chartContainer.style.height = '250px';
     chartContainer.style.width = '100%';
     chartContainer.style.position = 'relative';
     container.appendChild(chartContainer);
-
+  
     const canvas = document.createElement('canvas');
     canvas.id = 'ideas-status-chart';
     canvas.style.height = '100%';
     canvas.style.width = '100%';
     chartContainer.appendChild(canvas);
-
+  
     const labels = [], data = [], backgroundColors = [];
-
-    Object.keys(statusCounts).forEach(status => {
-      if (statusCounts[status] > 0) {
-        labels.push(tagMap[status]);
-        data.push(statusCounts[status]);
-        let color;
-        switch(status) {
-          case 'new': color = 'rgba(0, 123, 255, 1)'; break;
-          case 'planned': color = 'rgba(23, 162, 184, 1)'; break;
-          case 'in-progress': color = 'rgba(253, 126, 20, 1)'; break;
-          case 'already-exists': color = 'rgba(108, 117, 125, 1)'; break;
-          case 'under-review': color = 'rgba(32, 201, 151, 1)'; break;
-          case 'completed': color = 'rgba(40, 167, 69, 1)'; break;
-          case 'not-planned': color = 'rgba(220, 53, 69, 1)'; break;
-          default: color = 'rgba(173, 181, 189, 1)';
-        }
-        backgroundColors.push(color);
+  
+    // Ensure all statuses are included, even with a count of 0
+    Object.keys(tagMap).forEach(status => {
+      labels.push(tagMap[status]);  // Add label for every status
+      data.push(statusCounts[status] || 0);  // Add count (0 if no topics for this status)
+      let color;
+      switch(status) {
+        case 'new': color = 'rgba(0, 123, 255, 1)'; break;
+        case 'planned': color = 'rgba(23, 162, 184, 1)'; break;
+        case 'in-progress': color = 'rgba(253, 126, 20, 1)'; break;
+        case 'already-exists': color = 'rgba(108, 117, 125, 1)'; break;
+        case 'under-review': color = 'rgba(32, 201, 151, 1)'; break;
+        case 'completed': color = 'rgba(40, 167, 69, 1)'; break;
+        case 'not-planned': color = 'rgba(220, 53, 69, 1)'; break;
+        default: color = 'rgba(173, 181, 189, 1)';
       }
+      backgroundColors.push(color);
     });
-
+  
     if (window.ideasStatusChart) {
       window.ideasStatusChart.destroy();
       window.ideasStatusChart = null;
     }
-
+  
     if (typeof Chart === 'undefined') {
       const script = document.createElement('script');
       script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
@@ -179,6 +160,7 @@ export default apiInitializer("0.11.1", (api) => {
       createBarChart(canvas, labels, data, backgroundColors, total);
     }
   };
+  
 
   const createBarChart = (canvas, labels, data, backgroundColors, total) => {
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'}`;
