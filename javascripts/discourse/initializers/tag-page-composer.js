@@ -66,4 +66,25 @@ export default apiInitializer("0.8", (api) => {
       }
     }
   });
+
+  api.modifyClass('component:composer-tags', {
+    didInsertElement() {
+      this._super(...arguments);
+      
+      // Only run on enabled tag pages
+      if (!isEnabledTagPage()) return;
+
+      // Get the current tag from the route
+      const currentTag = this.router.currentRoute.params.tag;
+      
+      // If we have a current tag, remove its visual representation
+      if (currentTag) {
+        // Completely hide the tag selection area
+        this.element.style.display = 'none';
+        
+        // Ensure the tag is still added to the topic on creation
+        this.set('selectedTags', [currentTag]);
+      }
+    }
+  });
 });
