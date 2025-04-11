@@ -23,34 +23,43 @@ export default apiInitializer("0.11.1", (api) => {
     'already-exists': 'Already Exists',
   };
 
-  const statusTags = [
-    "new",
-    "under-review",
-    "planned",
-    "in-progress",
-    "completed",
-    "not-planned",
-    "already-exists"
-  ];
-
-  api.decorateWidget("topic-list-item:tags", (dec) => {
-    const topic = dec.getModel();
+  api.decorateWidget("topic-list-item:tags", (helper) => {
+    const topic = helper.getModel();
+    const tagMap = helper.widget.site.tags;
+    const statusTags = [
+      "new",
+      "under-review",
+      "planned",
+      "in-progress",
+      "completed",
+      "not-planned",
+      "already-exists"
+    ];
+  
     if (!topic.tags || topic.tags.length === 0) return;
-
+  
     const sortedTags = [...topic.tags].sort((a, b) => {
       const aIsStatus = statusTags.includes(a);
       const bIsStatus = statusTags.includes(b);
-
+  
       if (aIsStatus && !bIsStatus) return -1;
       if (!aIsStatus && bIsStatus) return 1;
       return 0;
     });
-
-    // Override the tags shown in the widget
-    topic.tags = sortedTags;
-
-    return;
+  
+    return sortedTags.map((tag) => {
+      const tagInfo = tagMap[tag];
+      const tagColor = tagInfo?.color || "999";
+  
+      return helper.h("span.tag-box", {
+        attributes: {
+          "data-tag-name": tag,
+          style: `border-color: #${tagColor}`
+        }
+      }, tag);
+    });
   });
+  
 
   const fetchAllTopicsInCategory = async (categoryId) => {
     const pageSize = 100;
