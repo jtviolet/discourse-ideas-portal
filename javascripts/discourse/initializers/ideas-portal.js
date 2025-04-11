@@ -23,17 +23,14 @@ export default apiInitializer("0.11.1", (api) => {
     'already-exists': 'Already Exists',
   };
 
-  api.decorateWidget("topic-list-item:tags", (helper) => {
+  api.decorateWidget("topic-list-item:tags", helper => {
     const topic = helper.getModel();
     const tagMap = helper.widget.site.tags;
+  
     const statusTags = [
-      "new",
-      "under-review",
-      "planned",
-      "in-progress",
-      "completed",
-      "not-planned",
-      "already-exists"
+      "new", "under-review", "planned",
+      "in-progress", "completed",
+      "not-planned", "already-exists"
     ];
   
     if (!topic.tags || topic.tags.length === 0) return;
@@ -41,24 +38,20 @@ export default apiInitializer("0.11.1", (api) => {
     const sortedTags = [...topic.tags].sort((a, b) => {
       const aIsStatus = statusTags.includes(a);
       const bIsStatus = statusTags.includes(b);
-  
       if (aIsStatus && !bIsStatus) return -1;
       if (!aIsStatus && bIsStatus) return 1;
       return 0;
     });
-  
-    return sortedTags.map((tag) => {
-      const tagInfo = tagMap[tag];
-      const tagColor = tagInfo?.color || "999";
-  
-      return helper.h("span.tag-box", {
-        attributes: {
-          "data-tag-name": tag,
-          style: `border-color: #${tagColor}`
-        }
-      }, tag);
+
+
+    console.log("Decorating tags for topic", topic.id, "tags:", sortedTags);
+
+    // TEST OVERRIDE
+    return sortedTags.map(tag => {
+      return helper.h("span.tag-box", {}, `[TEST:${tag}]`);
     });
-  }, { id: "ideas-portal-status-tags", replace: true });
+  }, { id: "ideas-portal-status-tags", replace: true }
+  );
   
 
   const fetchAllTopicsInCategory = async (categoryId) => {
