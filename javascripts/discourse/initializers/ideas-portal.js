@@ -23,6 +23,37 @@ export default apiInitializer("0.11.1", (api) => {
     'already-exists': 'Already Exists',
   };
 
+
+  api.registerValueTransformer('topic-list-tags', ({ value: tags, context }) => {
+    // If no tags or not on a list page, return original tags
+    if (!tags || !context.listView) return tags;
+
+    // Convert tags to array if it's not already
+    const tagsArray = Array.isArray(tags) ? tags : [tags];
+
+    // Separate status tags and non-status tags
+    const statusTagsList = tagsArray.filter(tag => tagMap[tag]);
+    const otherTags = tagsArray.filter(tag => !tagMap[tag]);
+
+    // Sort status tags by a predefined order (you can adjust this order)
+    const statusTagOrder = [
+      'new', 
+      'under-review', 
+      'planned', 
+      'in-progress', 
+      'completed', 
+      'not-planned', 
+      'already-exists'
+    ];
+
+    const sortedStatusTags = statusTagsList.sort((a, b) => 
+      statusTagOrder.indexOf(a) - statusTagOrder.indexOf(b)
+    );
+
+    // Combine sorted status tags first, then other tags
+    return [...sortedStatusTags, ...otherTags];
+  });
+
   const fetchAllTopicsInCategory = async (categoryId) => {
     const pageSize = 100;
     let page = 0;
