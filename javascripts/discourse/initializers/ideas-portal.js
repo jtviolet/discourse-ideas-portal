@@ -378,6 +378,60 @@ export default apiInitializer("0.11.1", (api) => {
     }
     
     document.body.classList.add("ideas-portal-category");
+
+        // Reorder status tags first in the topic list
+        const statusTags = [
+          "new",
+          "under-review",
+          "planned",
+          "in-progress",
+          "completed",
+          "not-planned",
+          "already-exists"
+        ];
+    
+        requestAnimationFrame(() => {
+          document.querySelectorAll("tr.topic-list-item").forEach(row => {
+            const tagRow = row.querySelector(".discourse-tags");
+            if (!tagRow) return;
+        
+            const statusTags = [
+              "new", "under-review", "planned",
+              "in-progress", "completed", "not-planned", "already-exists"
+            ];
+        
+            // Get all tag <a> elements
+            const tagElements = Array.from(tagRow.querySelectorAll("a.discourse-tag"));
+        
+            if (tagElements.length < 2) return; // no need to sort
+        
+            // Create a map of tagName -> original <a> element
+            const tagMap = new Map(tagElements.map(el => [el.dataset.tagName, el]));
+        
+            // Sort tag names by status-first
+            const sortedTagNames = [...tagMap.keys()].sort((a, b) => {
+              const aIsStatus = statusTags.includes(a);
+              const bIsStatus = statusTags.includes(b);
+              if (aIsStatus && !bIsStatus) return -1;
+              if (!aIsStatus && bIsStatus) return 1;
+              return 0;
+            });
+        
+            // Clear the container
+            tagRow.innerHTML = "";
+        
+            // Append tags with correct spacing
+            sortedTagNames.forEach((tagName, index) => {
+              const el = tagMap.get(tagName);
+              if (el) tagRow.appendChild(el);
+              if (index < sortedTagNames.length - 1) {
+                tagRow.appendChild(document.createTextNode(", "));
+              }
+            });
+          });
+        });
+        
+    
     // Apply tagMap text updates
     document.querySelectorAll('[data-tag-name]').forEach(el => {
       const tag = el.getAttribute('data-tag-name');
