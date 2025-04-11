@@ -66,12 +66,4 @@ export default apiInitializer("0.8", (api) => {
       }
     }
   });
-
-  // filter the composer categories to only show categories with slug 'ideas' if the current page is an enabled tag page
-  api.modifyClass("component:composer-category", {
-    pluginId: "filter-ideas-categories",
-    get categories() {
-      return this._super().filter((c) => c.slug === "ideas");
-    }
-  });
 });
