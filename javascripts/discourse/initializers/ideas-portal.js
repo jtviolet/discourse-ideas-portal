@@ -58,7 +58,7 @@ export default apiInitializer("0.11.1", (api) => {
         }
       }, tag);
     });
-  });
+  }, { id: "ideas-portal-status-tags", replace: true });
   
 
   const fetchAllTopicsInCategory = async (categoryId) => {
