@@ -71,6 +71,7 @@ export default apiInitializer("0.8", (api) => {
     pluginId: "netwrix-ideas-category-filter",
   
     get content() {
+      if (shouldEnableComponent()) {
       const enabledCategoryIds = settings.enabled_categories
         ? settings.enabled_categories
             .split("|")
@@ -83,7 +84,7 @@ export default apiInitializer("0.8", (api) => {
   
       // Only include categories from the enabled list
       return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
-    }
+    }}
   });
 
   api.modifyClass("component:tag-chooser", {
