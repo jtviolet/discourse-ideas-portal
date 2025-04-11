@@ -67,11 +67,18 @@ export default apiInitializer("0.8", (api) => {
     }
   });
 
-  // filter the composer categories to only show categories with slug 'ideas' if the current page is an enabled tag page
   api.modifyClass("component:composer-category", {
-    pluginId: "filter-ideas-categories",
+    pluginId: "netwrix-ideas-portal-category-filter",
+  
     get categories() {
-      return this._super().filter((c) => c.slug === "ideas");
+      const all = this.site.categories || [];
+  
+      // Only include categories with slug 'ideas'
+      //return all.filter((c) => c.slug === "ideas");
+  
+      // Or for partial match:
+      return all.filter((c) => c.slug?.includes("ideas"));
     }
   });
+  
 });
