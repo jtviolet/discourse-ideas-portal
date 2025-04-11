@@ -61,7 +61,7 @@ export default apiInitializer("0.8", (api) => {
       if (shouldEnableComponent()) {
         const titleInput = this.element.querySelector('#reply-title');
         if (titleInput) {
-          titleInput.placeholder = "Enter your idea title here";
+          titleInput.placeholder = "Enter the title of your idea here...";
         }
       }
     }
