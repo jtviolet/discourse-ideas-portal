@@ -23,37 +23,7 @@ export default apiInitializer("0.11.1", (api) => {
     'already-exists': 'Already Exists',
   };
 
-  api.decorateWidget("topic-list-item:tags", helper => {
-    const topic = helper.getModel();
-    const tagMap = helper.widget.site.tags;
   
-    const statusTags = [
-      "new", "under-review", "planned",
-      "in-progress", "completed",
-      "not-planned", "already-exists"
-    ];
-  
-    if (!topic.tags || topic.tags.length === 0) return;
-  
-    const sortedTags = [...topic.tags].sort((a, b) => {
-      const aIsStatus = statusTags.includes(a);
-      const bIsStatus = statusTags.includes(b);
-      if (aIsStatus && !bIsStatus) return -1;
-      if (!aIsStatus && bIsStatus) return 1;
-      return 0;
-    });
-
-
-    console.log("Decorating tags for topic", topic.id, "tags:", sortedTags);
-
-    // TEST OVERRIDE
-    return sortedTags.map(tag => {
-      return helper.h("span.tag-box", {}, `[TEST:${tag}]`);
-    });
-  }, { id: "ideas-portal-status-tags", replace: true }
-  );
-  
-
   const fetchAllTopicsInCategory = async (categoryId) => {
     const pageSize = 100;
     let page = 0;
@@ -409,6 +379,36 @@ export default apiInitializer("0.11.1", (api) => {
     
     document.body.classList.add("ideas-portal-category");
 
+        // Reorder status tags first in the topic list
+        const statusTags = [
+          "new",
+          "under-review",
+          "planned",
+          "in-progress",
+          "completed",
+          "not-planned",
+          "already-exists"
+        ];
+    
+        requestAnimationFrame(() => {
+          document.querySelectorAll("tr.topic-list-item").forEach(row => {
+            const tagRow = row.querySelector(".discourse-tags");
+            if (!tagRow) return;
+    
+            const tags = Array.from(tagRow.querySelectorAll(".discourse-tag"));
+    
+            const sorted = tags.sort((a, b) => {
+              const aIsStatus = statusTags.includes(a.dataset.tagName);
+              const bIsStatus = statusTags.includes(b.dataset.tagName);
+              if (aIsStatus && !bIsStatus) return -1;
+              if (!aIsStatus && bIsStatus) return 1;
+              return 0;
+            });
+    
+            sorted.forEach(tag => tagRow.appendChild(tag));
+          });
+        });
+    
     // Apply tagMap text updates
     document.querySelectorAll('[data-tag-name]').forEach(el => {
       const tag = el.getAttribute('data-tag-name');
