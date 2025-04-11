@@ -24,37 +24,65 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
 
-  api.registerValueTransformer('topic-list-tags', ({ value: tags, context }) => {
-    // If no tags or not on a list page, return original tags
-    if (!tags || !context.listView) return tags;
+  console.log("Ideas Portal Tag Transformer: Initializing");
 
-    // Convert tags to array if it's not already
-    const tagsArray = Array.isArray(tags) ? tags : [tags];
+  const statusTags = {
+    'new': 'New',
+    'under-review': 'Under Review',
+    'planned': 'Planned',
+    'in-progress': 'In Progress',
+    'completed': 'Completed',
+    'not-planned': 'Not Planned',
+    'already-exists': 'Already Exists',
+  };
 
-    // Separate status tags and non-status tags
-    const statusTagsList = tagsArray.filter(tag => tagMap[tag]);
-    console.log("Status tags:", statusTagsList);
-    const otherTags = tagsArray.filter(tag => !tagMap[tag]);
-    console.log("Other tags:", otherTags);
+  try {
+    api.registerValueTransformer('topic-list-tags', ({ value: tags, context }) => {
+      console.log("Ideas Portal Tag Transformer: Triggered");
+      console.log("Original tags:", tags);
+      console.log("Context:", context);
 
-    // Sort status tags by a predefined order (you can adjust this order)
-    const statusTagOrder = [
-      'new', 
-      'under-review', 
-      'planned', 
-      'in-progress', 
-      'completed', 
-      'not-planned', 
-      'already-exists'
-    ];
+      // If no tags or not on a list view, return original tags
+      if (!tags || !context.listView) {
+        console.log("Returning original tags (no modification)");
+        return tags;
+      }
 
-    const sortedStatusTags = statusTagsList.sort((a, b) => 
-      statusTagOrder.indexOf(a) - statusTagOrder.indexOf(b)
-    );
+      // Convert tags to array if it's not already
+      const tagsArray = Array.isArray(tags) ? tags : [tags];
 
-    // Combine sorted status tags first, then other tags
-    return [...sortedStatusTags, ...otherTags];
-  });
+      // Separate status tags and non-status tags
+      const statusTagsList = tagsArray.filter(tag => statusTags[tag]);
+      const otherTags = tagsArray.filter(tag => !statusTags[tag]);
+
+      console.log("Status tags:", statusTagsList);
+      console.log("Other tags:", otherTags);
+
+      // Sort status tags by a predefined order
+      const statusTagOrder = [
+        'new', 
+        'under-review', 
+        'planned', 
+        'in-progress', 
+        'completed', 
+        'not-planned', 
+        'already-exists'
+      ];
+
+      const sortedStatusTags = statusTagsList.sort((a, b) => 
+        statusTagOrder.indexOf(a) - statusTagOrder.indexOf(b)
+      );
+
+      const finalTags = [...sortedStatusTags, ...otherTags];
+      
+      console.log("Final tags:", finalTags);
+      return finalTags;
+    });
+
+    console.log("Ideas Portal Tag Transformer: Successfully registered");
+  } catch (error) {
+    console.error("Ideas Portal Tag Transformer: Registration failed", error);
+  }
 
   const fetchAllTopicsInCategory = async (categoryId) => {
     const pageSize = 100;
