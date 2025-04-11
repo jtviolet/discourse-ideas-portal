@@ -378,58 +378,6 @@ export default apiInitializer("0.11.1", (api) => {
     }
     
     document.body.classList.add("ideas-portal-category");
-
-        // Reorder status tags first in the topic list
-        const statusTags = [
-          "new",
-          "under-review",
-          "planned",
-          "in-progress",
-          "completed",
-          "not-planned",
-          "already-exists"
-        ];
-    
-        requestAnimationFrame(() => {
-          document.querySelectorAll("tr.topic-list-item").forEach(row => {
-            const tagRow = row.querySelector(".discourse-tags");
-            if (!tagRow) return;
-        
-            const tags = Array.from(tagRow.querySelectorAll(".discourse-tag"));
-        
-            const statusTags = [
-              "new", "under-review", "planned",
-              "in-progress", "completed", "not-planned", "already-exists"
-            ];
-        
-            const sorted = tags.sort((a, b) => {
-              const aIsStatus = statusTags.includes(a.dataset.tagName);
-              const bIsStatus = statusTags.includes(b.dataset.tagName);
-              if (aIsStatus && !bIsStatus) return -1;
-              if (!aIsStatus && bIsStatus) return 1;
-              return 0;
-            });
-        
-            // Remove all child nodes (including commas)
-            while (tagRow.firstChild) {
-              tagRow.removeChild(tagRow.firstChild);
-            }
-        
-            // Reinsert tags with proper spacing
-            sorted.forEach((tagEl, index) => {
-              tagRow.appendChild(tagEl);
-              if (index < sorted.length - 1) {
-                tagRow.appendChild(document.createTextNode(", "));
-              }
-            });
-          });
-        });
-        
-    
-            sorted.forEach(tag => tagRow.appendChild(tag));
-          });
-        });
-    
     // Apply tagMap text updates
     document.querySelectorAll('[data-tag-name]').forEach(el => {
       const tag = el.getAttribute('data-tag-name');
