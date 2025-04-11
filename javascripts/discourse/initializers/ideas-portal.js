@@ -24,66 +24,6 @@ export default apiInitializer("0.11.1", (api) => {
   };
 
 
-  console.log("Ideas Portal Tag Transformer: Initializing");
-
-  const statusTags = {
-    'new': 'New',
-    'under-review': 'Under Review',
-    'planned': 'Planned',
-    'in-progress': 'In Progress',
-    'completed': 'Completed',
-    'not-planned': 'Not Planned',
-    'already-exists': 'Already Exists',
-  };
-
-  try {
-    api.registerValueTransformer('topic-list-tags', ({ value: tags, context }) => {
-      console.log("Ideas Portal Tag Transformer: Triggered");
-      console.log("Original tags:", tags);
-      console.log("Context:", context);
-
-      // If no tags or not on a list view, return original tags
-      if (!tags || !context.listView) {
-        console.log("Returning original tags (no modification)");
-        return tags;
-      }
-
-      // Convert tags to array if it's not already
-      const tagsArray = Array.isArray(tags) ? tags : [tags];
-
-      // Separate status tags and non-status tags
-      const statusTagsList = tagsArray.filter(tag => statusTags[tag]);
-      const otherTags = tagsArray.filter(tag => !statusTags[tag]);
-
-      console.log("Status tags:", statusTagsList);
-      console.log("Other tags:", otherTags);
-
-      // Sort status tags by a predefined order
-      const statusTagOrder = [
-        'new', 
-        'under-review', 
-        'planned', 
-        'in-progress', 
-        'completed', 
-        'not-planned', 
-        'already-exists'
-      ];
-
-      const sortedStatusTags = statusTagsList.sort((a, b) => 
-        statusTagOrder.indexOf(a) - statusTagOrder.indexOf(b)
-      );
-
-      const finalTags = [...sortedStatusTags, ...otherTags];
-      
-      console.log("Final tags:", finalTags);
-      return finalTags;
-    });
-
-    console.log("Ideas Portal Tag Transformer: Successfully registered");
-  } catch (error) {
-    console.error("Ideas Portal Tag Transformer: Registration failed", error);
-  }
-
   const fetchAllTopicsInCategory = async (categoryId) => {
     const pageSize = 100;
     let page = 0;
