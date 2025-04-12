@@ -1,6 +1,10 @@
 import { apiInitializer } from "discourse/lib/api";
+import I18n from "I18n";
 
 export default apiInitializer("0.8", (api) => {
+  // Save the original translations
+  const originalChoose = I18n.translations.en.js.category.choose;
+  
   const enabledCategories = settings.enabled_categories
     ? settings.enabled_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
     : [];
@@ -53,40 +57,12 @@ export default apiInitializer("0.8", (api) => {
     // Check if we're on either an enabled category page or an enabled tag page
     return getCurrentCategoryInfo() !== null || isEnabledTagPage();
   };
-
-  // Filter the categories in the category chooser
-  api.modifyClass("component:category-chooser", {
-    pluginId: "netwrix-ideas-category-filter",
   
-    get content() {
-      const allCategories = this.site.categories || [];
-  
-      if (!shouldEnableComponent()) {
-        return allCategories;
-      }
-  
-      const enabledCategoryIds = settings.enabled_categories
-        ? settings.enabled_categories
-            .split("|")
-            .map(id => parseInt(id, 10))
-            .filter(id => !isNaN(id))
-        : [];
-  
-      return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
-    }
-  });
-  
-  // Add a class to the body element when the component should be enabled
-  api.onPageChange(() => {
-    if (shouldEnableComponent()) {
-      document.body.classList.add("ideas-hide-category-badges");
-    } else {
-      document.body.classList.remove("ideas-hide-category-badges");
-    }
-  });
-  
-  // Clean up when navigating away
-  api.cleanupStream(() => {
-    document.body.classList.remove("ideas-hide-category-badges");
+  // Override the translation getter to conditionally return our custom text
+  Object.defineProperty(I18n.translations.en.js.category, 'choose', {
+    get: function() {
+      return shouldEnableComponent() ? "Choose a product..." : originalChoose;
+    },
+    configurable: true
   });
 });

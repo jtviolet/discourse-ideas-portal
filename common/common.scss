@@ -168,20 +168,3 @@
 .ideas-hide-category-badges .category-status .badge-category__wrapper:nth-child(3) {
   display: inline-flex !important;
 }
-
-/* Change the category chooser placeholder text */
-.ideas-hide-category-badges .category-chooser .select-kit-header .select-kit-selected-name:not(.selected-name):empty::before,
-.ideas-hide-category-badges .category-chooser .select-kit-header .category-row:not(.selected-name).is-none h3::before {
-  content: "Choose a product..." !important;
-}
-
-.ideas-hide-category-badges .category-chooser .category-row.is-none h3.category-name,
-.ideas-hide-category-badges .category-chooser .select-kit-header .select-kit-selected-name {
-  font-size: 0 !important;
-}
-
-.ideas-hide-category-badges .category-chooser .category-row.is-none h3.category-name::before,
-.ideas-hide-category-badges .category-chooser .select-kit-header .select-kit-selected-name:empty::before {
-  content: "Choose a product..." !important;
-  font-size: 14px !important;
-}
