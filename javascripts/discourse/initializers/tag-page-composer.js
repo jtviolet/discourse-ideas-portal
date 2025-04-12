@@ -85,31 +85,6 @@ export default apiInitializer("0.8", (api) => {
         : [];
   
       return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
-    },
-    
-    didInsertElement() {
-      this._super(...arguments);
-      
-      if (shouldEnableComponent()) {
-        try {
-          // Wait for the component to be fully rendered
-          setTimeout(() => {
-            // Find the header element with the placeholder text
-            const placeholderEl = this.element.querySelector('.category-dropdown-header h3.category-name');
-            if (placeholderEl && placeholderEl.textContent.trim() === "Category") {
-              placeholderEl.textContent = "Choose a product...";
-            }
-            
-            // Also try to find the placeholder in ComboBox
-            const comboBoxPlaceholder = this.element.querySelector('.select-kit-header .select-kit-header-wrapper .select-kit-selected-name');
-            if (comboBoxPlaceholder && comboBoxPlaceholder.textContent.trim() === "Category...") {
-              comboBoxPlaceholder.textContent = "Choose a product...";
-            }
-          }, 0);
-        } catch (e) {
-          console.error("Error updating category placeholder:", e);
-        }
-      }
     }
   });
   
@@ -117,21 +92,6 @@ export default apiInitializer("0.8", (api) => {
   api.onPageChange(() => {
     if (shouldEnableComponent()) {
       document.body.classList.add("ideas-hide-category-badges");
-      
-      // Update any existing category dropdown placeholders
-      setTimeout(() => {
-        document.querySelectorAll('.category-chooser').forEach(chooser => {
-          const placeholderEl = chooser.querySelector('.category-dropdown-header h3.category-name');
-          if (placeholderEl && placeholderEl.textContent.trim() === "Category") {
-            placeholderEl.textContent = "Choose a product...";
-          }
-          
-          const comboBoxPlaceholder = chooser.querySelector('.select-kit-header .select-kit-header-wrapper .select-kit-selected-name');
-          if (comboBoxPlaceholder && comboBoxPlaceholder.textContent.trim() === "Category...") {
-            comboBoxPlaceholder.textContent = "Choose a product...";
-          }
-        });
-      }, 100);
     } else {
       document.body.classList.remove("ideas-hide-category-badges");
     }
