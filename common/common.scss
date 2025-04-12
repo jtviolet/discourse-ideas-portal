@@ -156,3 +156,15 @@
   background: var(--secondary);
   margin: auto auto 0 auto;
 }
+
+/* Hide the first three badge-category__wrapper spans in category selectors */
+.category-status .badge-category__wrapper:nth-child(1),
+.category-status .badge-category__wrapper:nth-child(2),
+.category-status .badge-category__wrapper:nth-child(3) {
+  display: none !important;
+}
+
+/* Ensure only the fourth badge-category__wrapper is visible */
+.category-status .badge-category__wrapper:nth-child(4) {
+  display: inline-flex !important;
+}
