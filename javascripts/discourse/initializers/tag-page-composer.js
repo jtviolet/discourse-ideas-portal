@@ -69,6 +69,16 @@ export default apiInitializer("0.8", (api) => {
 
   api.modifyClass("component:category-chooser", {
     pluginId: "netwrix-ideas-category-filter",
+    
+    // Override the placeholder text
+    get placeholderKey() {
+      return shouldEnableComponent() ? "Choose a product..." : this._super(...arguments);
+    },
+    
+    // For newer Discourse versions that use placeholderText directly
+    get placeholderText() {
+      return shouldEnableComponent() ? "Choose a product..." : this._super(...arguments);
+    },
   
     get content() {
       const allCategories = this.site.categories || [];
