@@ -50,19 +50,18 @@ export default apiInitializer("0.8", (api) => {
   };
   
   const shouldEnableComponent = () => {
-    // Check if we're on either an enabled category page or an enabled tag page
-    return getCurrentCategoryInfo() !== null || isEnabledTagPage();
+    // Check ONLY if we're on an enabled tag page
+    return isEnabledTagPage();
   };
 
-  // Filter the categories in the category chooser
+  // Filter the categories in the category chooser ONLY on enabled tag pages
   api.modifyClass("component:category-chooser", {
     pluginId: "netwrix-ideas-category-filter",
   
     get content() {
-      const allCategories = this.site.categories || [];
-  
+      // Only filter categories if we're on an enabled tag page
       if (!shouldEnableComponent()) {
-        return allCategories;
+        return this.site.categories || [];
       }
   
       const enabledCategoryIds = settings.enabled_categories
@@ -72,11 +71,11 @@ export default apiInitializer("0.8", (api) => {
             .filter(id => !isNaN(id))
         : [];
   
-      return allCategories.filter(cat => enabledCategoryIds.includes(cat.id));
+      return (this.site.categories || []).filter(cat => enabledCategoryIds.includes(cat.id));
     }
   });
   
-  // Add a class to the body element when the component should be enabled
+  // Add a class to the body element when on an enabled tag page
   api.onPageChange(() => {
     if (shouldEnableComponent()) {
       document.body.classList.add("ideas-hide-category-badges");
