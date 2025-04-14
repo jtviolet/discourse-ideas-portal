@@ -25,20 +25,24 @@ export default apiInitializer("0.11.1", (api) => {
 
   
   const fetchAllTopicsInCategory = async (categoryId) => {
+    const pageSize = 100;
+    let page = 0;
     let allTopics = [];
-    let page = 1;
-    let hasMore = true;
-  
-    while (hasMore) {
-      const response = await fetch(`/search.json?in=category&category=${categoryId}&page=${page}`);
+    let done = false;
+
+    while (!done) {
+      const response = await fetch(`/c/${categoryId}.json?page=${page}`);
       if (!response.ok) break;
-  
+
       const data = await response.json();
-      const topics = (data.topics || []).filter(t => !t.deleted_at);
-  
+      const topics = data.topic_list.topics || [];
+
       allTopics = allTopics.concat(topics);
-      hasMore = data.more_topics_url !== null;
-      page++;
+      if (topics.length < pageSize) {
+        done = true;
+      } else {
+        page++;
+      }
     }
 
     return allTopics;
