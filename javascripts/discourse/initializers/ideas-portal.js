@@ -40,7 +40,8 @@ export default apiInitializer("0.11.1", (api) => {
       hasMore = data.more_topics_url !== null;
       page++;
     }
-  
+
+    console.log("Found ", allTopics.length, " topics in category ", categoryId);
     return allTopics;
   };
   
