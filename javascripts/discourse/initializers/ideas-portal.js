@@ -47,28 +47,32 @@ export default apiInitializer("0.11.1", (api) => {
   
   
   const fetchAllTopicsForTag = async (tagName) => {
-    const pageSize = 100;
+    const pageSize = 30;
     let page = 0;
     let allTopics = [];
     let done = false;
-
-    while (!done) {
+  
+    while (!done && page < 100) {
       const response = await fetch(`/tag/${tagName}.json?page=${page}`);
       if (!response.ok) break;
-
+  
       const data = await response.json();
-      const topics = data.topic_list.topics || [];
-
+      const topics = data?.topic_list?.topics || [];
+  
+      console.log(`Fetched tag page ${page}, got ${topics.length} topics`);
       allTopics = allTopics.concat(topics);
+  
       if (topics.length < pageSize) {
         done = true;
       } else {
         page++;
       }
     }
-
+  
+    console.log("Found", allTopics.length, "topics for tag", tagName);
     return allTopics;
   };
+  
 
   const buildStatusCounts = (topics) => {
     const counts = {};
