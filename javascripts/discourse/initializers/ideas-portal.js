@@ -41,7 +41,6 @@ export default apiInitializer("0.11.1", (api) => {
       page++;
     }
 
-    console.log("Found ", allTopics.length, " topics in category ", categoryId);
     return allTopics;
   };
   
@@ -69,7 +68,6 @@ export default apiInitializer("0.11.1", (api) => {
       }
     }
   
-    console.log("Found", allTopics.length, "topics for tag", tagName);
     return allTopics;
   };
   
