@@ -75,13 +75,13 @@
 }
 
 /* Tag styling */
-.ideas-portal-category > [data-tag-name="new"],
-.ideas-portal-category > [data-tag-name="planned"],
-.ideas-portal-category > [data-tag-name="in-progress"],
-.ideas-portal-category > [data-tag-name="already-exists"],
-.ideas-portal-category > [data-tag-name="under-review"],
-.ideas-portal-category > [data-tag-name="completed"],
-.ideas-portal-category > [data-tag-name="not-planned"] {
+.topic-list [data-tag-name="new"],
+.topic-list [data-tag-name="planned"],
+.topic-list [data-tag-name="in-progress"],
+.topic-list [data-tag-name="already-exists"],
+.topic-list [data-tag-name="under-review"],
+.topic-list [data-tag-name="completed"],
+.topic-list [data-tag-name="not-planned"] {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 16px;
@@ -92,13 +92,13 @@
   margin-right: 4px;
 }
 
-.topic-list > [data-tag-name="new"],
-.topic-list > [data-tag-name="planned"],
-.topic-list > [data-tag-name="in-progress"],
-.topic-list > [data-tag-name="already-exists"],
-.topic-list > [data-tag-name="under-review"],
-.topic-list > [data-tag-name="completed"],
-.topic-list > [data-tag-name="not-planned"] {
+.topic-list [data-tag-name="new"],
+.topic-list [data-tag-name="planned"],
+.topic-list [data-tag-name="in-progress"],
+.topic-list [data-tag-name="already-exists"],
+.topic-list [data-tag-name="under-review"],
+.topic-list [data-tag-name="completed"],
+.topic-list [data-tag-name="not-planned"] {
   display: inline-block !important;
   padding: 2px 8px !important;
   border-radius: 16px !important;
