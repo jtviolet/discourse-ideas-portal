@@ -52,25 +52,25 @@
 }
 
 /* Custom colors per tag */
-.ideas-portal-category [data-tag-name="new"] {
+.topic-list [data-tag-name="new"] {
   background-color: #007bff !important;
 }
-.ideas-portal-category [data-tag-name="planned"] {
+.topic-list [data-tag-name="planned"] {
   background-color: #17a2b8 !important;
 }
-.ideas-portal-category [data-tag-name="in-progress"] {
+.topic-list [data-tag-name="in-progress"] {
   background-color: #fd7e14 !important;
 }
-.ideas-portal-category [data-tag-name="already-exists"] {
+.topic-list [data-tag-name="already-exists"] {
   background-color: #6c757d !important;
 }
-.ideas-portal-category [data-tag-name="under-review"] {
+.topic-list [data-tag-name="under-review"] {
   background-color: #20c997 !important;
 }
-.ideas-portal-category [data-tag-name="completed"] {
+.topic-list [data-tag-name="completed"] {
   background-color: #28a745 !important;
 }
-.ideas-portal-category [data-tag-name="not-planned"] {
+.topic-list [data-tag-name="not-planned"] {
   background-color: #dc3545 !important;
 }
 
