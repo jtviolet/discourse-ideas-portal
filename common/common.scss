@@ -53,25 +53,25 @@
 
 /* Custom colors per tag */
 .ideas-portal-category [data-tag-name="new"] {
-  background-color: #007bff;
+  background-color: #007bff !important;
 }
 .ideas-portal-category [data-tag-name="planned"] {
-  background-color: #17a2b8;
+  background-color: #17a2b8 !important;
 }
 .ideas-portal-category [data-tag-name="in-progress"] {
-  background-color: #fd7e14;
+  background-color: #fd7e14 !important;
 }
 .ideas-portal-category [data-tag-name="already-exists"] {
-  background-color: #6c757d;
+  background-color: #6c757d !important;
 }
 .ideas-portal-category [data-tag-name="under-review"] {
-  background-color: #20c997;
+  background-color: #20c997 !important;
 }
 .ideas-portal-category [data-tag-name="completed"] {
-  background-color: #28a745;
+  background-color: #28a745 !important;
 }
 .ideas-portal-category [data-tag-name="not-planned"] {
-  background-color: #dc3545;
+  background-color: #dc3545 !important;
 }
 
 /* Tag styling */
@@ -88,7 +88,7 @@
   font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
-  color: white;
+  color: var(--primary);
   margin-right: 4px;
 }
 
@@ -105,7 +105,7 @@
   font-size: 0.75rem !important;
   font-weight: bold !important;
   text-transform: uppercase !important;
-  color: white !important;
+  color: var(--primary) !important;
   margin-right: 4px !important;
   text-align: center !important;
   vertical-align: middle !important;
@@ -118,7 +118,7 @@
   font-size: 0.75rem;
   font-weight: bold;
   text-transform: uppercase;
-  color: white;
+  color: var(--primary);
   text-decoration: none;
   margin-right: 4px;
 }
