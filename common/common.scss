@@ -158,13 +158,13 @@ body:not(.tag-ideas) .ideas-portal-category .category-breadcrumb li:last-child {
 }
 
 /* Category badge styling - hide first, second, and last wrappers */
-.ideas-hide-category-badges .category-status .badge-category__wrapper:nth-child(1),
-.ideas-hide-category-badges .category-status .badge-category__wrapper:nth-child(2),
-.ideas-hide-category-badges .category-status .badge-category__wrapper:nth-child(4) {
+.ideas-hide-category-badges .composer-popup-container .category-status .badge-category__wrapper:nth-child(1),
+.ideas-hide-category-badges .composer-popup-container .category-status .badge-category__wrapper:nth-child(2),
+.ideas-hide-category-badges .composer-popup-container .category-status .badge-category__wrapper:nth-child(4) {
   display: none !important;
 }
 
 /* Make sure the third one is displayed correctly */
-.ideas-hide-category-badges .category-status .badge-category__wrapper:nth-child(3) {
+.ideas-hide-category-badges .composer-popup-container .category-status .badge-category__wrapper:nth-child(3) {
   display: inline-flex !important;
 }
