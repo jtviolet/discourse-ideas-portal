@@ -132,8 +132,8 @@
 }
 
 /* Hide category breadcrumb */
-.ideas-portal-category .category-breadcrumb li:first-child,
-.ideas-portal-category .category-breadcrumb li:last-child {
+body:not(.tag-ideas) .ideas-portal-category .category-breadcrumb li:first-child,
+body:not(.tag-ideas) .ideas-portal-category .category-breadcrumb li:last-child {
   display: none;
 }
 
