@@ -1,5 +1,6 @@
+// javascripts/discourse/initializers/ideas-portal.js
 import { apiInitializer } from "discourse/lib/api";
-// Assuming ideas-portal-helper.js is correctly imported or helpers are globally available
+// Ensure helper path is correct for your theme structure
 import {
   shouldEnableForCategoryOrTag,
   getCurrentEnabledCategoryInfo,
@@ -8,48 +9,49 @@ import {
   isEnabledTagPage,
   TAG_MAP,
   resetCache // Import resetCache if needed for cleanup
-} from "../lib/ideas-portal-helper"; // Adjust path as needed
+} from "../lib/ideas-portal-helper";
 
-export default apiInitializer("0.11.2", (api) => { // Increment version if dependent on helper
+export default apiInitializer("0.11.3", (api) => { // Ensure version is unique
 
   let currentChartInstance = null; // Store chart instance locally
 
   /**
    * Fetches topics page by page for a category.
    * WARNING: Fetching ALL topics can be very slow and resource-intensive
-   * on categories with many topics. Consider alternatives:
-   * - Using a Discourse API endpoint that provides aggregated counts directly (ideal).
-   * - Implementing server-side aggregation via a plugin.
-   * - Caching results client-side (e.g., sessionStorage).
-   * - Limiting this feature (e.g., chart) to specific user groups.
+   * on categories with many topics. Consider alternatives.
    */
   const fetchAllTopicsInCategory = async (categoryId) => {
+    if (!categoryId) {
+      console.warn("Ideas Portal: Invalid categoryId passed to fetchAllTopicsInCategory.");
+      return [];
+    }
     console.debug(`Ideas Portal: Starting fetch for all topics in category ${categoryId}`);
     const pageSize = 100; // Discourse category JSON page size
     let page = 0;
     let allTopics = [];
     let done = false;
-    const MAX_PAGES = 20; // Safety break to prevent infinite loops / excessive requests
+    const MAX_PAGES = 20; // Safety break
 
     while (!done && page < MAX_PAGES) {
       try {
+        // Ensure categoryId is valid before fetching
         const response = await fetch(`/c/${categoryId}.json?page=${page}`);
         if (!response.ok) {
           console.warn(`Ideas Portal: Fetch failed for category ${categoryId}, page ${page}. Status: ${response.status}`);
-          break; // Stop fetching on error
+          break;
         }
         const data = await response.json();
         const topics = data?.topic_list?.topics || [];
         allTopics = allTopics.concat(topics);
 
         if (topics.length < pageSize) {
-          done = true; // Last page reached
+          done = true;
         } else {
           page++;
         }
       } catch (e) {
           console.error(`Ideas Portal: Error fetching category topics (page ${page}):`, e);
-          done = true; // Stop fetching on network/parse error
+          done = true; // Stop fetching on error
       }
     }
     if (page === MAX_PAGES) {
@@ -64,6 +66,10 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
    * WARNING: Performance considerations similar to fetchAllTopicsInCategory apply.
    */
   const fetchAllTopicsForTag = async (tagName) => {
+    if (!tagName) {
+        console.warn("Ideas Portal: Invalid tagName passed to fetchAllTopicsForTag.");
+        return [];
+    }
     console.debug(`Ideas Portal: Starting fetch for all topics with tag ${tagName}`);
     const pageSize = 30; // Discourse tag JSON page size
     let page = 0;
@@ -73,7 +79,7 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
 
     while (!done && page < MAX_PAGES) {
        try {
-        const response = await fetch(`/tag/${tagName}.json?page=${page}`);
+        const response = await fetch(`/tag/${encodeURIComponent(tagName)}.json?page=${page}`); // Ensure tagName is encoded
         if (!response.ok) {
           console.warn(`Ideas Portal: Fetch failed for tag ${tagName}, page ${page}. Status: ${response.status}`);
           break;
@@ -90,7 +96,7 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
         }
       } catch(e) {
           console.error(`Ideas Portal: Error fetching tag topics (page ${page}):`, e);
-          done = true; // Stop fetching on network/parse error
+          done = true;
       }
     }
      if (page === MAX_PAGES) {
@@ -103,17 +109,19 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
 
   const buildStatusCounts = (topics) => {
     const counts = {};
-    // Initialize all known statuses from TAG_MAP to 0
     Object.keys(TAG_MAP).forEach(tag => counts[tag] = 0);
 
+    if (!Array.isArray(topics)) return counts; // Safety check
+
     topics.forEach(topic => {
-      const tags = topic.tags || [];
-      tags.forEach(tag => {
-        // Only increment if the tag is one of our known statuses
-        if (TAG_MAP.hasOwnProperty(tag)) {
-          counts[tag]++;
-        }
-      });
+      const tags = topic?.tags; // Safely access tags
+      if (Array.isArray(tags)) {
+          tags.forEach(tag => {
+            if (TAG_MAP.hasOwnProperty(tag)) {
+              counts[tag]++;
+            }
+          });
+      }
     });
     return counts;
   };
@@ -122,32 +130,43 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
   const loadChartJs = () => {
       return new Promise((resolve, reject) => {
           if (typeof Chart !== 'undefined') {
-              return resolve(); // Already loaded
+              return resolve(Chart); // Resolve with Chart object
           }
+          console.debug("Ideas Portal: Loading Chart.js library...");
           const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js'; // Use a specific version if possible
-          script.onload = resolve;
-          script.onerror = reject;
+          // Consider using a specific version or hosting it yourself
+          script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+          script.onload = () => {
+              console.debug("Ideas Portal: Chart.js loaded successfully.");
+              resolve(Chart); // Resolve with Chart object
+          };
+          script.onerror = (err) => {
+               console.error("Ideas Portal: Failed to load Chart.js library.", err);
+               reject(new Error("Chart.js library failed to load."));
+          };
           document.head.appendChild(script);
       });
   };
 
 
   const createStatusVisualization = async (statusCounts, container) => {
-      if (!container) return;
+      if (!container) {
+          console.warn("Ideas Portal: Invalid container provided for status visualization.");
+          return;
+      }
 
-      container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--primary-medium);">Loading visualization...</p>'; // Loading indicator
-      container.style.display = 'block'; // Ensure container is visible
+      container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--primary-medium);">Loading visualization...</p>';
+      container.style.display = 'block';
 
       try {
-          await loadChartJs(); // Ensure Chart.js is loaded
+          const Chart = await loadChartJs(); // Ensure Chart.js is loaded, get Chart constructor
 
           container.innerHTML = ''; // Clear loading message
           const total = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
 
           if (total === 0) {
               const noIdeasMessage = document.createElement('div');
-              noIdeasMessage.className = 'no-ideas-message'; // Use class for styling
+              noIdeasMessage.className = 'no-ideas-message';
               noIdeasMessage.innerHTML = `
                   <p>It looks like there are no ideas with a status tag yet.</p>
                   <p>Ideas need a status tag (like 'new', 'planned', etc.) to appear here.</p>
@@ -156,63 +175,61 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
               return;
           }
 
-          // Create structure for the chart
-          const header = document.createElement('div');
-          header.className = 'ideas-visualization-header';
-          // header.textContent = `${total} ${total === 1 ? 'Idea' : 'Ideas'} Status Overview`; // Title moved to chart options
-          container.appendChild(header); // Add header if needed separately
-
           const chartContainer = document.createElement('div');
-          chartContainer.style.height = '250px'; // Maintain desired height
+          chartContainer.style.height = '250px';
           chartContainer.style.width = '100%';
           chartContainer.style.position = 'relative';
           container.appendChild(chartContainer);
 
           const canvas = document.createElement('canvas');
-          canvas.id = `ideas-status-chart-${Date.now()}`; // Unique ID per instance
+          // Generate a unique ID based on container's presence or timestamp
+          const uniqueId = container.id || `ideas-chart-${Date.now()}`;
+          canvas.id = `ideas-status-chart-${uniqueId}`;
           canvas.style.height = '100%';
           canvas.style.width = '100%';
           chartContainer.appendChild(canvas);
 
-          // Prepare data for Chart.js
           const labels = [], data = [], backgroundColors = [];
-          const statusColors = { // Centralize colors
-                'new': 'rgba(0, 123, 255, 1)',
-                'planned': 'rgba(23, 162, 184, 1)',
-                'in-progress': 'rgba(253, 126, 20, 1)',
-                'already-exists': 'rgba(108, 117, 125, 1)',
-                'under-review': 'rgba(32, 201, 151, 1)',
-                'completed': 'rgba(40, 167, 69, 1)',
+          const statusColors = {
+                'new': 'rgba(0, 123, 255, 1)', 'planned': 'rgba(23, 162, 184, 1)',
+                'in-progress': 'rgba(253, 126, 20, 1)', 'already-exists': 'rgba(108, 117, 125, 1)',
+                'under-review': 'rgba(32, 201, 151, 1)', 'completed': 'rgba(40, 167, 69, 1)',
                 'not-planned': 'rgba(220, 53, 69, 1)',
           };
 
           Object.keys(TAG_MAP).forEach(status => {
               labels.push(TAG_MAP[status]);
               data.push(statusCounts[status] || 0);
-              backgroundColors.push(statusColors[status] || 'rgba(173, 181, 189, 1)'); // Fallback color
+              backgroundColors.push(statusColors[status] || 'rgba(173, 181, 189, 1)');
           });
 
-          // Destroy previous chart instance if it exists
           if (currentChartInstance) {
+              console.debug("Ideas Portal: Destroying previous chart instance.");
               currentChartInstance.destroy();
               currentChartInstance = null;
           }
 
-          // Create the chart
-          createBarChart(canvas, labels, data, backgroundColors, total);
+          // Pass Chart constructor to the creation function
+          createBarChart(Chart, canvas, labels, data, backgroundColors, total);
 
       } catch (error) {
           console.error("Ideas Portal: Failed to create status visualization:", error);
           container.innerHTML = `<p style="text-align: center; padding: 20px; color: var(--primary-medium); font-style: italic;">
               Could not load ideas visualization. ${error.message || ''}
-          </p>`; // Display error message
+          </p>`;
       }
   };
 
 
-  const createBarChart = (canvas, labels, data, backgroundColors, total) => {
+  // Updated to accept Chart constructor
+  const createBarChart = (Chart, canvas, labels, data, backgroundColors, total) => {
+      if (typeof Chart === 'undefined' || !Chart) {
+          console.error("Ideas Portal: Chart constructor is not available.");
+          return;
+      }
       const chartTitle = `${total} ${total === 1 ? 'Idea' : 'Ideas'} by Status`;
-      const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary").trim() || '#000000'; // Fallback color
+      // Default fallback added for primary color
+      const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary").trim() || '#333333';
 
       const ctx = canvas.getContext('2d');
       if (!ctx) {
@@ -221,37 +238,34 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
       }
 
       try {
+          console.debug("Ideas Portal: Creating new Chart instance.");
           currentChartInstance = new Chart(ctx, {
               type: 'bar',
-              data: {
+              data: { /* ... data structure as before ... */
                   labels,
                   datasets: [{
-                      label: 'Idea Count', // Add a label for clarity
+                      label: 'Idea Count',
                       data,
                       backgroundColor: backgroundColors,
-                      borderColor: backgroundColors.map(c => c.replace(/, *1\)/, ', 1)')), // Ensure alpha is 1 for border
+                      borderColor: backgroundColors.map(c => c.replace(/, *1\)/, ', 1)')),
                       borderWidth: 1,
                       borderRadius: 6,
                       borderSkipped: false,
                   }]
               },
-              options: {
+              options: { /* ... options structure as before ... */
                   responsive: true,
                   maintainAspectRatio: false,
-                  indexAxis: 'x', // Ensure bars are vertical
+                  indexAxis: 'x',
                   plugins: {
                       legend: { display: false },
                       title: {
-                          display: true,
-                          text: chartTitle,
-                          font: { size: 18, weight: 'bold' }, // Adjusted size
-                          color: primaryColor,
-                          padding: { top: 10, bottom: 20 } // Added top padding
+                          display: true, text: chartTitle,
+                          font: { size: 18, weight: 'bold' }, color: primaryColor,
+                          padding: { top: 10, bottom: 20 }
                       },
                       tooltip: {
-                          backgroundColor: 'rgba(0,0,0,0.8)',
-                          titleFont: { size: 13 },
-                          bodyFont: { size: 12 },
+                          backgroundColor: 'rgba(0,0,0,0.8)', titleFont: { size: 13 }, bodyFont: { size: 12 },
                           callbacks: {
                               label: (context) => {
                                   const count = context.raw || 0;
@@ -263,52 +277,37 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
                       }
                   },
                   scales: {
-                      x: {
-                          grid: { display: false },
-                          ticks: { color: primaryColor, font: { size: 12 } } // Adjusted size
-                      },
+                      x: { grid: { display: false }, ticks: { color: primaryColor, font: { size: 12 } } },
                       y: {
-                          beginAtZero: true,
-                          grid: { color: 'rgba(128, 128, 128, 0.2)' }, // Softer grid color
-                          ticks: {
-                              precision: 0, // Only whole numbers
-                              color: primaryColor,
-                              font: { size: 12 } // Adjusted size
-                          }
+                          beginAtZero: true, grid: { color: 'rgba(128, 128, 128, 0.2)' },
+                          ticks: { precision: 0, color: primaryColor, font: { size: 12 } }
                       }
                   },
-                  animation: {
-                      duration: 800, // Slightly faster animation
-                      easing: 'easeOutQuart'
-                  }
+                  animation: { duration: 800, easing: 'easeOutQuart' }
               }
           });
       } catch (e) {
           console.error("Ideas Portal: Error initializing Chart:", e);
-          // Optionally update the container with an error message here too
-          canvas.parentElement.innerHTML = `<p style="text-align: center; color: var(--danger);">Chart Error</p>`;
+          if (canvas.parentElement) {
+              canvas.parentElement.innerHTML = `<p style="text-align: center; color: var(--danger);">Chart Error</p>`;
+          }
       }
   };
 
   // --- DOM Manipulation Functions ---
 
-  /**
-   * Updates navigation link text (e.g., "Top" to "Most Active").
-   * WARNING: Relies on specific CSS classes and text content, which might change in Discourse.
-   */
   const updateNavLinks = () => {
+    /* ... function definition as before ... */
     const navLinksToUpdate = [
       { className: "top", newText: "Most Active" },
       { className: "votes", newText: "Most Voted" },
       { className: "latest", newText: "Recently Active" },
     ];
-
     navLinksToUpdate.forEach(({ className, newText }) => {
       try {
         const listItem = document.querySelector(`.navigation-container .nav-item.${className}`);
         if (listItem) {
           const link = listItem.querySelector("a");
-          // Check current text before changing to avoid repeated updates or changing unrelated links
           const currentText = link?.textContent?.trim();
           const expectedOldText = className.charAt(0).toUpperCase() + className.slice(1);
           if (link && currentText === expectedOldText) {
@@ -321,11 +320,8 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
     });
   };
 
-  /**
-   * Updates the main topic list header (e.g., "Topic" to "Ideas").
-   * WARNING: Relies on specific CSS selectors, which might change.
-   */
   const updateTopicListHeader = () => {
+      /* ... function definition as before ... */
       try {
         const headerElement = document.querySelector('table.topic-list th.topic-list-data.default span');
         if (headerElement && headerElement.textContent?.trim() === "Topic") {
@@ -336,73 +332,56 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
       }
   };
 
-  /**
-   * Updates tag text content based on TAG_MAP.
-   */
    const updateTagText = () => {
+       /* ... function definition as before ... */
        document.querySelectorAll('[data-tag-name]').forEach(el => {
            const tag = el.getAttribute('data-tag-name');
-           if (tag && TAG_MAP[tag] && el.textContent !== TAG_MAP[tag]) { // Avoid unnecessary updates
+           if (tag && TAG_MAP[tag] && el.textContent !== TAG_MAP[tag]) {
                el.textContent = TAG_MAP[tag];
            }
        });
    };
 
-  /**
-   * Reorders tags within each topic list row to prioritize status tags.
-   * WARNING: Modifies DOM structure, might have minor performance impact on large lists.
-   */
   const reorderTagsInTopicList = () => {
-      const statusTagsOrder = Object.keys(TAG_MAP); // Get order from TAG_MAP keys
-
+      /* ... function definition as before ... */
+      const statusTagsOrder = Object.keys(TAG_MAP);
       document.querySelectorAll("tr.topic-list-item").forEach(row => {
           const tagContainer = row.querySelector(".discourse-tags");
           if (!tagContainer) return;
-
           const tagElements = Array.from(tagContainer.querySelectorAll("a.discourse-tag[data-tag-name]"));
-          if (tagElements.length < 2) return; // No need to sort if 0 or 1 tag
-
-          // Sort tags: status tags first (in defined order), then others alphabetically
+          if (tagElements.length < 2) return;
           tagElements.sort((a, b) => {
-              const tagA = a.dataset.tagName;
-              const tagB = b.dataset.tagName;
-              const indexA = statusTagsOrder.indexOf(tagA);
-              const indexB = statusTagsOrder.indexOf(tagB);
-
-              if (indexA !== -1 && indexB !== -1) return indexA - indexB; // Both are status tags, sort by predefined order
-              if (indexA !== -1) return -1; // A is status, B is not -> A comes first
-              if (indexB !== -1) return 1;  // B is status, A is not -> B comes first
-              return tagA.localeCompare(tagB); // Neither are status tags, sort alphabetically
+              const tagA = a.dataset.tagName; const tagB = b.dataset.tagName;
+              const indexA = statusTagsOrder.indexOf(tagA); const indexB = statusTagsOrder.indexOf(tagB);
+              if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+              if (indexA !== -1) return -1; if (indexB !== -1) return 1;
+              return tagA.localeCompare(tagB);
           });
-
-          // Detach and re-append in sorted order
-          tagElements.forEach(el => tagContainer.appendChild(el)); // Re-appending moves them to the end in the new order
+          tagElements.forEach(el => tagContainer.appendChild(el));
       });
   };
 
-  /**
-   * Updates the category banner title if applicable.
-   * WARNING: Relies on specific CSS class, might change.
-   */
-  const updateCategoryBannerTitle = (category) => {
-      if (!category) return;
+  // Updated to accept container
+  const updateCategoryBannerTitle = (category, container) => {
+      if (!category || !container || typeof container.lookup !== 'function') return; // Safety checks
       try {
-          const bannerTitle = document.querySelector(".custom-banner__title"); // Adjust selector if theme uses different banner class
+          const bannerTitle = document.querySelector(".custom-banner__title"); // Adjust if needed
           if (bannerTitle) {
               const originalTitle = bannerTitle.textContent.trim();
-              const parentSlug = getParentCategorySlug(category); // Use helper
+              // Use helper, passing container
+              const parentSlug = getParentCategorySlug(container, category);
               let parentName = "";
               if (category.parent_category_id) {
-                  const siteCategories = api.container.lookup("site:main").categories; // Use cached if available via helper
-                  const parentCategory = siteCategories.find(cat => cat.id === category.parent_category_id);
-                  if (parentCategory) parentName = parentCategory.name;
+                  // Direct lookup here is fine, or use getSiteCategories(container)
+                  const site = container.lookup("site:main");
+                  const parentCategory = site?.categories?.find(cat => cat.id === category.parent_category_id);
+                  if (parentCategory?.name) parentName = parentCategory.name; // Safely access name
               }
 
-              // Update only if parent name exists and title doesn't already seem correct
-              if (parentName && !originalTitle.includes(category.name)) {
-                  bannerTitle.textContent = `${parentName} › ${category.name}`; // Use separator
-              } else if (!parentName && originalTitle !== category.name) {
-                   bannerTitle.textContent = category.name; // Ensure simple category name is correct
+              if (parentName && category.name && !originalTitle.includes(category.name)) {
+                   bannerTitle.textContent = `${parentName} › ${category.name}`;
+              } else if (!parentName && category.name && originalTitle !== category.name) {
+                   bannerTitle.textContent = category.name;
               }
           }
       } catch (e) {
@@ -410,64 +389,70 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
       }
   };
 
-  /**
-   * Creates and injects the tag filter and status visualization elements.
-   */
-  const renderFiltersAndVisualization = async () => {
-      // Remove existing elements first to prevent duplication
+  // Updated to accept container
+  const renderFiltersAndVisualization = async (container) => {
+      if (!container || typeof container.lookup !== 'function') {
+          console.error("Ideas Portal: Invalid container passed to renderFiltersAndVisualization.");
+          return;
+      }
+      console.debug("Ideas Portal: Rendering filters and visualization.");
+
       const existingContainer = document.querySelector('.ideas-portal-controls');
-      if (existingContainer) existingContainer.remove();
+      if (existingContainer) {
+          console.debug("Ideas Portal: Removing existing controls container.");
+          existingContainer.remove();
+      }
 
-      const category = getCurrentEnabledCategoryInfo();
-      const tagName = getCurrentEnabledTagName();
+      // Get category/tag info using the container
+      const category = getCurrentEnabledCategoryInfo(container);
+      const tagName = getCurrentEnabledTagName(container);
 
-      // Create main container
+      // Exit if neither is active (shouldn't happen if called correctly, but safety check)
+      if (!category && !tagName) {
+          console.debug("Ideas Portal: Neither category nor tag page detected for rendering controls.");
+          return;
+      }
+
       const controlsContainer = document.createElement('div');
-      controlsContainer.className = 'ideas-portal-controls'; // Use a more specific class name
+      controlsContainer.className = 'ideas-portal-controls';
 
-      // Create elements
       const title = document.createElement('h3');
       title.className = 'ideas-filter-title';
-      title.textContent = category ? `${category.name} Status & Filters` : `"${tagName}" Tag Status & Filters`;
+      // Safely access category/tag names
+      title.textContent = category ? `${category.name || 'Category'} Status & Filters` : `"${tagName || 'Tag'}" Status & Filters`;
       controlsContainer.appendChild(title);
 
       const statusVisualization = document.createElement('div');
       statusVisualization.className = 'ideas-status-visualization';
-      controlsContainer.appendChild(statusVisualization); // Add vis container early
+      controlsContainer.appendChild(statusVisualization);
 
       const filtersWrapper = document.createElement('div');
-      filtersWrapper.className = 'ideas-tag-filters'; // Keep this class for styling the inner filter area
+      filtersWrapper.className = 'ideas-tag-filters';
       const filterButtonsWrapper = document.createElement('div');
-      filterButtonsWrapper.className = 'filter-buttons'; // Wrapper for the buttons themselves
+      filterButtonsWrapper.className = 'filter-buttons';
 
       let topics = [];
       let baseHref = '';
       let intersectionPrefix = '';
 
-      // --- Configure based on category or tag page ---
       if (category) {
-          baseHref = `/c/${getParentCategorySlug(category)}${category.slug}/${category.id}`;
-          intersectionPrefix = `/tags/c/${getParentCategorySlug(category)}${category.slug}/${category.id}/`;
+          // Pass container to getParentCategorySlug
+          const parentSlug = getParentCategorySlug(container, category);
+          baseHref = `/c/${parentSlug}${category.slug || category.id}/${category.id}`; // Fallback to ID if slug missing
+          intersectionPrefix = `/tags/c/${parentSlug}${category.slug || category.id}/${category.id}/`;
           try {
               topics = await fetchAllTopicsInCategory(category.id);
-          } catch (e) {
-              console.error("Ideas Portal: Failed to load topics for category chart:", e);
-              statusVisualization.innerHTML = '<p style="text-align: center; color: var(--danger);">Error loading category topics.</p>';
-          }
+          } catch (e) { /* Error handled in fetch function */ }
       } else if (tagName) {
-          baseHref = `/tag/${tagName}`;
-          intersectionPrefix = `/tags/intersection/${tagName}/`;
+          const encodedTag = encodeURIComponent(tagName);
+          baseHref = `/tag/${encodedTag}`;
+          intersectionPrefix = `/tags/intersection/${encodedTag}/`;
           try {
               topics = await fetchAllTopicsForTag(tagName);
-          } catch (e) {
-              console.error("Ideas Portal: Failed to load topics for tag chart:", e);
-              statusVisualization.innerHTML = '<p style="text-align: center; color: var(--danger);">Error loading tag topics.</p>';
-          }
-      } else {
-          return; // Should not happen if shouldEnable is true, but safety check
+          } catch (e) { /* Error handled in fetch function */ }
       }
 
-      // --- Build Filters ---
+      // Build Filters
       const resetFilter = document.createElement('a');
       resetFilter.href = baseHref;
       resetFilter.className = 'tag-filter tag-filter-reset';
@@ -476,80 +461,103 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
 
       Object.keys(TAG_MAP).forEach(tag => {
           const filter = document.createElement('a');
-          filter.href = `${intersectionPrefix}${tag}`;
+          // Ensure intersectionPrefix ends with a slash and tag is encoded if needed
+          filter.href = `${intersectionPrefix}${encodeURIComponent(tag)}`;
           filter.className = 'tag-filter';
-          filter.setAttribute('data-tag-name', tag); // Used for styling and potentially JS hooks
-          filter.textContent = TAG_MAP[tag]; // Use mapped name
+          filter.setAttribute('data-tag-name', tag);
+          filter.textContent = TAG_MAP[tag];
           filterButtonsWrapper.appendChild(filter);
       });
 
-      filtersWrapper.appendChild(filterButtonsWrapper); // Add buttons to their wrapper
-      controlsContainer.appendChild(filtersWrapper); // Add filters below visualization
+      filtersWrapper.appendChild(filterButtonsWrapper);
+      controlsContainer.appendChild(filtersWrapper);
 
-      // --- Inject into DOM ---
-      // Target element for insertion (adjust selector if needed)
-      const target = document.querySelector('.navigation-container');
+      // Inject into DOM
+      const target = document.querySelector('.navigation-container'); // Adjust selector if needed
       if (target) {
           target.insertAdjacentElement('afterend', controlsContainer);
+          console.debug("Ideas Portal: Controls injected after .navigation-container.");
       } else {
-          console.warn("Ideas Portal: Could not find .navigation-container to insert controls.");
-          // Fallback: append to body or another known element?
+          console.warn("Ideas Portal: Could not find .navigation-container. Appending controls to body as fallback.");
           document.body.insertBefore(controlsContainer, document.body.firstChild);
       }
 
-       // --- Create Visualization (after filters are added) ---
+       // Create Visualization (now uses fetched topics)
        const statusCounts = buildStatusCounts(topics);
-       await createStatusVisualization(statusCounts, statusVisualization); // Pass the specific container
+       await createStatusVisualization(statusCounts, statusVisualization);
 
-       // --- Final Text Updates After Injection ---
-       updateTagText(); // Ensure newly added filter tags have correct text
+       // Final Text Updates After Injection
+       updateTagText();
   };
 
 
   // --- Main Execution Logic ---
   api.onPageChange(async (url, title) => {
-    const shouldEnable = shouldEnableForCategoryOrTag(); // Use helper
+    console.debug(`Ideas Portal: onPageChange triggered for URL: ${url}`);
+    // Pass api.container to the activation check
+    const shouldEnable = shouldEnableForCategoryOrTag(api.container);
+    console.debug(`Ideas Portal: shouldEnable evaluated to: ${shouldEnable}`);
+
+    const bodyClass = "ideas-portal-category";
+    const controlsSelector = '.ideas-portal-controls';
 
     if (!shouldEnable) {
-      document.body.classList.remove("ideas-portal-category");
-      // Cleanup existing elements if navigating away
-      const existingControls = document.querySelector('.ideas-portal-controls');
-      if (existingControls) existingControls.remove();
-      if (currentChartInstance) {
-          currentChartInstance.destroy();
-          currentChartInstance = null;
+      if (document.body.classList.contains(bodyClass)) {
+          console.debug("Ideas Portal: Cleaning up - removing body class and controls.");
+          document.body.classList.remove(bodyClass);
+          const existingControls = document.querySelector(controlsSelector);
+          if (existingControls) existingControls.remove();
+          if (currentChartInstance) {
+              currentChartInstance.destroy();
+              currentChartInstance = null;
+          }
       }
       return;
     }
 
-    // Add body class for general styling
-    document.body.classList.add("ideas-portal-category");
-
-    // Hide Categories link specifically on enabled tag pages
-    const categoriesNavItem = document.querySelector('.nav-item_categories');
-    if(categoriesNavItem) {
-        categoriesNavItem.style.display = isEnabledTagPage() ? 'none' : ''; // Use helper
+    // Add body class if not already present
+    if (!document.body.classList.contains(bodyClass)) {
+        document.body.classList.add(bodyClass);
     }
 
+    // Hide Categories link on enabled tag pages
+    try {
+        const categoriesNavItem = document.querySelector('.nav-item_categories');
+        if (categoriesNavItem) {
+            // Pass api.container
+            categoriesNavItem.style.display = isEnabledTagPage(api.container) ? 'none' : '';
+        }
+    } catch (e) {
+        console.warn("Ideas Portal: Error hiding categories nav item.", e);
+    }
 
-    // Perform DOM updates - consider requestAnimationFrame if updates cause layout shifts
-    // requestAnimationFrame(() => {
-        updateNavLinks();
-        updateTopicListHeader();
-        reorderTagsInTopicList();
-        updateTagText(); // Update existing tags on page
-        updateCategoryBannerTitle(getCurrentEnabledCategoryInfo()); // Use helper
-    // });
+    // Perform DOM updates safely
+    try {
+        // Use requestAnimationFrame for updates that might affect layout
+        requestAnimationFrame(() => {
+            updateNavLinks();
+            updateTopicListHeader();
+            reorderTagsInTopicList();
+            updateTagText(); // Update existing tags
+            // Pass api.container when getting category info and updating banner
+            updateCategoryBannerTitle(getCurrentEnabledCategoryInfo(api.container), api.container);
+        });
+    } catch(e) {
+        console.error("Ideas Portal: Error during scheduled DOM updates.", e);
+    }
 
-    // Render the filters and visualization section
-    await renderFiltersAndVisualization();
-
+    // Render the filters and visualization section, passing container
+    try {
+        await renderFiltersAndVisualization(api.container);
+    } catch (e) {
+        console.error("Ideas Portal: Error rendering filters and visualization.", e);
+    }
   });
 
   // --- Cleanup ---
   api.cleanupStream(() => {
-    console.debug("Ideas Portal: Cleaning up...");
-    resetCache(); // Reset cached settings from helper
+    console.debug("Ideas Portal: Cleanup stream called.");
+    resetCache(); // Reset helper cache
     document.body.classList.remove("ideas-portal-category");
     const existingControls = document.querySelector('.ideas-portal-controls');
     if (existingControls) existingControls.remove();
@@ -557,6 +565,5 @@ export default apiInitializer("0.11.2", (api) => { // Increment version if depen
       currentChartInstance.destroy();
       currentChartInstance = null;
     }
-    // Restore original nav link text? (More complex, might not be needed)
   });
 });
