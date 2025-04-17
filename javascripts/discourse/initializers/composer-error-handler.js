@@ -1,94 +1,111 @@
 import { apiInitializer } from "discourse/lib/api";
 
+/**
+ * WARNING: This initializer adds global error handlers to catch and potentially suppress
+ * specific errors, likely "Cannot read properties of undefined (reading 'id')".
+ * This is a workaround and does not fix the underlying cause of the error.
+ *
+ * Suppressing errors can:
+ * - Mask real problems in the application.
+ * - Make debugging harder.
+ * - Lead to unexpected behavior later on.
+ *
+ * The preferred solution is to identify and fix the root cause of the error this handler
+ * targets. Use this handler only as a temporary measure if the error is causing significant
+ * user disruption and cannot be immediately fixed.
+ */
 export default apiInitializer("0.9", (api) => {
-  // Create a debug log for window errors
-  const windowErrorLog = [];
-  window.viewWindowErrorLog = function() {
-    console.table(windowErrorLog);
-  };
-  
-  // Add a global window error handler that specifically targets the error we're seeing
+  // Use a shared namespace if defined by another patch, otherwise create it
+  window.discourseIdeasPortalPatches = window.discourseIdeasPortalPatches || {};
+  window.discourseIdeasPortalPatches.windowErrors = window.discourseIdeasPortalPatches.windowErrors || [];
+
+  const errorLog = window.discourseIdeasPortalPatches.windowErrors;
+  const targetErrorMessage = "Cannot read properties of undefined (reading 'id')";
+  let handlersAttached = false; // Prevent multiple attachments
+
   const errorHandler = function(event) {
-    // Always log the error for debugging
-    if (event && event.error) {
-      const errorInfo = {
-        timestamp: new Date().toISOString(),
-        type: 'window.error',
-        errorType: event.error.constructor ? event.error.constructor.name : typeof event.error,
-        message: event.error.message || event.error.toString(),
-        file: event.filename,
-        lineNumber: event.lineno,
-        columnNumber: event.colno,
-        stack: event.error.stack ? event.error.stack.split('\n').slice(0, 5).join('\n') : 'no stack'
-      };
-      
-      windowErrorLog.push(errorInfo);
-      
-      // Check if the error matches our pattern
-      if (event.error.toString && 
-          event.error.toString().includes("Cannot read properties of undefined (reading 'id')")) {
-        
-        // Log detail for debugging
-        console.debug('Intercepted window error:', {
-          error: event.error,
-          stack: event.error.stack,
-          url: window.location.href,
-          source: 'window error handler'
-        });
-        
-        errorInfo.suppressed = true;
-        
-        // Prevent the error from appearing in console
-        event.preventDefault();
-        return true; // Signal that we've handled the error
-      }
+    if (!event || !event.error) return;
+
+    const error = event.error;
+    const errorInfo = {
+      timestamp: new Date().toISOString(),
+      type: 'window.error',
+      errorType: error.constructor ? error.constructor.name : typeof error,
+      message: error.message || String(error),
+      file: event.filename,
+      lineNumber: event.lineno,
+      columnNumber: event.colno,
+      stack: error.stack ? error.stack.split('\n').slice(0, 5).join('\n') : 'no stack',
+      suppressed: false
+    };
+
+    errorLog.push(errorInfo);
+
+    // Check if the error message contains the specific string we want to suppress
+    if (errorInfo.message && errorInfo.message.includes(targetErrorMessage)) {
+      console.debug('Ideas Portal Error Handler: Intercepted window error:', errorInfo.message, { error });
+      errorInfo.suppressed = true;
+
+      // Prevent the default browser error logging for this specific error
+      event.preventDefault();
+      // Consider if you need to return true here depending on browser specifics
+      // return true;
     }
   };
-  
-  // Add a handler for unhandled promise rejections too
+
   const rejectionHandler = function(event) {
-    // Always log the rejection for debugging
-    if (event && event.reason) {
-      const rejectionInfo = {
+     if (!event || !event.reason) return;
+
+     const reason = event.reason;
+     const rejectionInfo = {
         timestamp: new Date().toISOString(),
         type: 'unhandled.promise',
-        errorType: event.reason.constructor ? event.reason.constructor.name : typeof event.reason,
-        message: event.reason.message || event.reason.toString(),
-        stack: event.reason.stack ? event.reason.stack.split('\n').slice(0, 5).join('\n') : 'no stack'
-      };
-      
-      windowErrorLog.push(rejectionInfo);
-      
-      // Check if the rejection reason matches our pattern
-      if (event.reason.toString && 
-          event.reason.toString().includes("Cannot read properties of undefined (reading 'id')")) {
-        
-        // Log detail for debugging
-        console.debug('Intercepted promise rejection:', {
-          reason: event.reason,
-          stack: event.reason.stack,
-          url: window.location.href,
-          source: 'unhandledrejection handler'
-        });
-        
+        errorType: reason.constructor ? reason.constructor.name : typeof reason,
+        message: reason.message || String(reason),
+        stack: reason.stack ? reason.stack.split('\n').slice(0, 5).join('\n') : 'no stack',
+        suppressed: false
+     };
+
+     errorLog.push(rejectionInfo);
+
+     // Check if the rejection reason contains the specific string
+     if (rejectionInfo.message && rejectionInfo.message.includes(targetErrorMessage)) {
+        console.debug('Ideas Portal Error Handler: Intercepted promise rejection:', rejectionInfo.message, { reason });
         rejectionInfo.suppressed = true;
-        
-        // Prevent the error from appearing in console
+
+        // Prevent the default browser error logging for this specific rejection
         event.preventDefault();
-        return true;
-      }
-    }
+        // Consider if you need to return true here
+        // return true;
+     }
   };
-  
-  // Add the error handlers
-  window.addEventListener("error", errorHandler, true);
-  window.addEventListener("unhandledrejection", rejectionHandler, true);
-  
-  // Clean up when navigating away
-  api.cleanupStream(() => {
-    window.removeEventListener("error", errorHandler, true);
-    window.removeEventListener("unhandledrejection", rejectionHandler, true);
-  });
-  
-  console.log("Window error tracking initialized. Type 'window.viewWindowErrorLog()' in console to see window error details.");
+
+  // Attach handlers only once
+  if (!handlersAttached) {
+      // Use capture phase (true) to catch errors early
+      window.addEventListener("error", errorHandler, true);
+      window.addEventListener("unhandledrejection", rejectionHandler, true);
+      handlersAttached = true;
+      console.log("Ideas Portal: Global error handler initialized to track and potentially suppress specific errors.");
+
+      // Ensure cleanup removes the *exact same* listeners
+      api.cleanupStream(() => {
+        window.removeEventListener("error", errorHandler, true);
+        window.removeEventListener("unhandledrejection", rejectionHandler, true);
+        handlersAttached = false; // Reset flag if needed for re-initialization scenarios
+        console.log("Ideas Portal: Global error handler cleaned up.");
+      });
+  }
+
+  // Expose a way to view the logged errors (if not already exposed by api-setup-patch)
+  if (!window.viewIdeasPortalPatchErrors) {
+      window.viewIdeasPortalPatchErrors = function() {
+          const allErrors = (window.discourseIdeasPortalPatches?.errors || []).concat(window.discourseIdeasPortalPatches?.windowErrors || []);
+          if(allErrors.length === 0) {
+              console.log("Ideas Portal Patches & Handlers: No errors logged.");
+          } else {
+              console.table(allErrors);
+          }
+      };
+  }
 });

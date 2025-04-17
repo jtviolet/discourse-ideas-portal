@@ -1,76 +1,41 @@
 import { apiInitializer } from "discourse/lib/api";
+// Assuming ideas-portal-helper.js is correctly imported or helpers are globally available
+import { shouldEnableForCategoryOrTag } from "../lib/ideas-portal-helper"; // Adjust path as needed
 
-export default apiInitializer("0.8", (api) => {
-  const enabledCategories = settings.enabled_categories
-    ? settings.enabled_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
-    : [];
-    
-  const enabledTags = settings.enabled_tags
-    ? settings.enabled_tags.split("|").map(tag => tag.trim()).filter(tag => tag.length > 0)
-    : [];
+export default apiInitializer("0.8.1", (api) => { // Increment version if dependent on helper
+  const customPlaceholder = "Enter the title of your idea here...";
 
-  const getCurrentCategoryInfo = () => {
-    const discoveryService = api.container.lookup("service:discovery");
-    if (!discoveryService?.category) return null;
-    const category = discoveryService.category;
-    return enabledCategories.includes(category.id) ? category : null;
-  };
-  
-  const isEnabledTagPage = () => {
-    if (enabledTags.length === 0) return false;
-    
-    // Check if we're on a tag page
-    const currentRoute = api.container.lookup("service:router").currentRouteName;
-    // Check for both "tags.show" and "tag.show" route patterns
-    if (!currentRoute.includes("tag")) return false;
-    
-    // Get the current tag
-    let currentTag;
-    
-    // Try both controllers since different Discourse versions might use different patterns
-    const tagsShowController = api.container.lookup("controller:tags.show");
-    const tagShowController = api.container.lookup("controller:tag.show");
-    
-    if (tagsShowController && tagsShowController.tag) {
-      currentTag = tagsShowController.tag;
-    } else if (tagShowController && tagShowController.tag) {
-      currentTag = tagShowController.tag;
-    } else {
-      // Last resort: try to extract tag from URL
-      const path = window.location.pathname;
-      const tagMatch = path.match(/\/tag\/([^\/]+)/);
-      if (tagMatch && tagMatch[1]) {
-        currentTag = tagMatch[1];
-      }
-    }
-    
-    if (!currentTag) return false;
-    
-    return enabledTags.includes(currentTag);
-  };
-  
-  const shouldEnableComponent = () => {
-    // Check if we're on either an enabled category page or an enabled tag page
-    return getCurrentCategoryInfo() !== null || isEnabledTagPage();
-  };
-
-  // Modify the composer title placeholder
   api.modifyClass("component:composer-title", {
-    pluginId: "ideas-title-modifier",
-    
-    didRender() {
-      this._super(...arguments);
-      
-      if (shouldEnableComponent()) {
+    pluginId: "ideas-title-modifier", // Unique ID for modification
+
+    /**
+     * Check if the placeholder needs updating after rendering.
+     */
+    _updatePlaceholderIfNeeded() {
+      if (shouldEnableForCategoryOrTag()) { // Use helper
         try {
-          const titleInput = document.getElementById('reply-title');
-          if (titleInput) {
-            titleInput.placeholder = "Enter the title of your idea here...";
+          // Use this.element which is the standard Ember way to access the component's element
+          const titleInput = this.element?.querySelector('#reply-title');
+          if (titleInput && titleInput.placeholder !== customPlaceholder) {
+            titleInput.placeholder = customPlaceholder;
           }
         } catch (e) {
-          // Silent fail
+          console.warn("Ideas Portal: Failed to update composer title placeholder.", e);
         }
       }
+      // No 'else' needed - if not enabled, composer should revert to default placeholder automatically
+    },
+
+    didInsertElement() {
+      this._super(...arguments);
+      this._updatePlaceholderIfNeeded(); // Check on initial insert
+    },
+
+    didReceiveAttrs() {
+      this._super(...arguments);
+      // Check if attributes changing might affect whether it should be enabled (e.g., composer model changes)
+      // Using requestAnimationFrame helps ensure DOM is ready after potential re-renders from attr changes.
+      requestAnimationFrame(() => this._updatePlaceholderIfNeeded());
     }
   });
 });

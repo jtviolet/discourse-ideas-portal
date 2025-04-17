@@ -1,110 +1,109 @@
 import { apiInitializer } from "discourse/lib/api";
+// Assuming ideas-portal-helper.js is correctly imported or helpers are globally available
+import {
+    shouldEnableForTagOnly,
+    isEnabledTagPage, // Keep for direct checks if needed
+    resetCache // Import resetCache if needed for cleanup
+} from "../lib/ideas-portal-helper"; // Adjust path as needed
 
-export default apiInitializer("0.8", (api) => {
-  const enabledCategories = settings.enabled_categories
-    ? settings.enabled_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
-    : [];
-    
-  const enabledTags = settings.enabled_tags
-    ? settings.enabled_tags.split("|").map(tag => tag.trim()).filter(tag => tag.length > 0)
-    : [];
+export default apiInitializer("0.8.1", (api) => { // Increment version if dependent on helper
 
-  const getCurrentCategoryInfo = () => {
-    const discoveryService = api.container.lookup("service:discovery");
-    if (!discoveryService?.category) return null;
-    const category = discoveryService.category;
-    return enabledCategories.includes(category.id) ? category : null;
-  };
-  
-  const isEnabledTagPage = () => {
-    if (enabledTags.length === 0) return false;
-    
-    // Check if we're on a tag page
-    const currentRoute = api.container.lookup("service:router").currentRouteName;
-    // Check for both "tags.show" and "tag.show" route patterns
-    if (!currentRoute.includes("tag")) return false;
-    
-    // Get the current tag
-    let currentTag;
-    
-    // Try both controllers since different Discourse versions might use different patterns
-    const tagsShowController = api.container.lookup("controller:tags.show");
-    const tagShowController = api.container.lookup("controller:tag.show");
-    
-    if (tagsShowController && tagsShowController.tag) {
-      currentTag = tagsShowController.tag;
-    } else if (tagShowController && tagShowController.tag) {
-      currentTag = tagShowController.tag;
-    } else {
-      // Last resort: try to extract tag from URL
-      const path = window.location.pathname;
-      const tagMatch = path.match(/\/tag\/([^\/]+)/);
-      if (tagMatch && tagMatch[1]) {
-        currentTag = tagMatch[1];
-      }
-    }
-    
-    if (!currentTag) return false;
-    
-    return enabledTags.includes(currentTag);
-  };
-  
-  const shouldEnableComponent = () => {
-    // Check ONLY if we're on an enabled tag page
-    return isEnabledTagPage();
-  };
-
-  // Filter the categories in the category chooser ONLY on enabled tag pages
+  // Filter categories shown in the composer's category chooser ONLY on enabled tag pages
   api.modifyClass("component:category-chooser", {
-    pluginId: "netwrix-ideas-category-filter",
-  
+    pluginId: "netwrix-ideas-category-filter", // Keep original pluginId if necessary
+
+    // Cache enabled category IDs specific to this modification
+    _ideasEnabledCategoryIds: null,
+
+    _getEnabledIds() {
+        if (this._ideasEnabledCategoryIds === null) {
+            this._ideasEnabledCategoryIds = settings.enabled_categories
+                ? settings.enabled_categories
+                    .split("|")
+                    .map(id => parseInt(id, 10))
+                    .filter(id => !isNaN(id))
+                : [];
+        }
+        return this._ideasEnabledCategoryIds;
+    },
+
+    // Override the content getter
     get content() {
-      // Only filter categories if we're on an enabled tag page
-      if (!shouldEnableComponent()) {
-        return this.site.categories || [];
+      // Only filter if we are specifically on an enabled tag page
+      if (!shouldEnableForTagOnly()) { // Use helper for tag-only check
+        // Reset cache if navigating away from relevant page
+        this._ideasEnabledCategoryIds = null;
+        // Use the original getter logic if available, otherwise default to site categories
+        return this._super ? this._super() : (this.site?.categories || []);
       }
-  
-      const enabledCategoryIds = settings.enabled_categories
-        ? settings.enabled_categories
-            .split("|")
-            .map(id => parseInt(id, 10))
-            .filter(id => !isNaN(id))
-        : [];
-  
-      return (this.site.categories || []).filter(cat => enabledCategoryIds.includes(cat.id));
-    }
+
+      const enabledIds = this._getEnabledIds();
+      const allCategories = this._super ? this._super() : (this.site?.categories || []);
+
+      // Filter the categories based on the enabled IDs
+      return allCategories.filter(cat => enabledIds.includes(cat.id));
+    },
+
+    // Ensure cache is cleared if component is destroyed or settings change
+     willDestroyElement() {
+        this._ideasEnabledCategoryIds = null;
+        if (this._super) {
+            this._super(...arguments);
+        }
+     }
   });
 
-  // Add options to navigation dropdown via a class attribute
-  // This uses a safer approach by marking the body with a class when enabled
+
+  // Add body classes and attempt to filter navigation dropdown categories
+  const updateBodyClassesAndNavFilter = () => {
+      const shouldEnable = shouldEnableForTagOnly(); // Use helper
+
+      if (shouldEnable) {
+          document.body.classList.add("ideas-hide-category-badges");
+          document.body.classList.add("ideas-filter-category-dropdown"); // Class for potential CSS-based filtering
+
+          // WARNING: Filtering the navigation dropdown via JS/setTimeout is fragile.
+          // It depends on timing and the exact DOM structure of the dropdown, which can change.
+          // A CSS-based approach using the body class might be more reliable if feasible.
+          // Consider looking for Discourse plugin outlets or core events related to dropdowns.
+          setTimeout(() => {
+              try {
+                  const enabledCategoryIds = settings.enabled_categories
+                      ? settings.enabled_categories.split("|").map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+                      : [];
+
+                  // Adjust selector based on current Discourse structure for category dropdown items
+                  const categoryDropdownItems = document.querySelectorAll('.category-dropdown-menu .category-link[data-category-id]'); // Example selector
+                  if (categoryDropdownItems.length > 0) {
+                      categoryDropdownItems.forEach(item => {
+                          const categoryId = item.getAttribute('data-category-id');
+                          if (categoryId && !enabledCategoryIds.includes(parseInt(categoryId, 10))) {
+                              // Hiding might be better done by adding a class and using CSS
+                              item.style.display = 'none';
+                          } else {
+                              item.style.display = ''; // Ensure visible if it should be
+                          }
+                      });
+                  }
+              } catch (e) {
+                  console.warn("Ideas Portal: Failed to apply filter to category navigation dropdown (fragile operation).", e);
+              }
+          }, 500); // 500ms delay is arbitrary and might not always be sufficient
+
+      } else {
+          document.body.classList.remove("ideas-hide-category-badges");
+          document.body.classList.remove("ideas-filter-category-dropdown");
+      }
+  };
+
+  // Apply changes on page load/change
   api.onPageChange(() => {
-    if (shouldEnableComponent()) {
-      document.body.classList.add("ideas-hide-category-badges");
-      document.body.classList.add("ideas-filter-category-dropdown");
-    } else {
-      document.body.classList.remove("ideas-hide-category-badges");
-      document.body.classList.remove("ideas-filter-category-dropdown");
-    }
-    
-    // Safe way to filter the navigation dropdown categories
-    // Add an observer to the DOM to apply filtering when the categories dropdown is opened
-    if (shouldEnableComponent()) {
-      setTimeout(() => {
-        const categoryDropdownItems = document.querySelectorAll('.category-dropdown-menu .category');
-        if (categoryDropdownItems && categoryDropdownItems.length > 0) {
-          categoryDropdownItems.forEach(item => {
-            const categoryId = item.getAttribute('data-category-id');
-            if (categoryId && !enabledCategories.includes(parseInt(categoryId, 10))) {
-              item.style.display = 'none';
-            }
-          });
-        }
-      }, 500); // Small delay to ensure the DOM is ready
-    }
+      updateBodyClassesAndNavFilter();
   });
-  
-  // Clean up when navigating away
+
+  // Clean up body classes on exit
   api.cleanupStream(() => {
+    resetCache(); // Reset helper cache if needed
     document.body.classList.remove("ideas-hide-category-badges");
     document.body.classList.remove("ideas-filter-category-dropdown");
   });
