@@ -1,37 +1,46 @@
 /* Common styles for Ideas Portal active state */
 .ideas-portal-category {
 
-  /* Styles for the main controls container - THIS is the main box now */
+  /* Main controls container - Should look like one unified box */
   .ideas-portal-controls {
+    // Box Model
     margin: 16px 0;
-    padding: 15px; // Apply padding here
+    padding: 15px; // Unified padding
     background: var(--secondary); // Apply background here
     border-radius: 8px; // Apply border-radius here
     border: 1px solid var(--primary-low); // Apply border here (optional, adjust as needed)
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); // Apply shadow here
+    // Layout
+    display: flex; // Use flexbox to manage children
+    flex-direction: column; // Stack chart and filters vertically
+    gap: 15px; // Space between chart area and filters area
   }
 
-  /* Status visualization styling - Remove outer box styles */
+  /* Status visualization container (inside controls) */
   .ideas-status-visualization {
-    width: 100%;
-    // Removed padding, background, border, border-radius, box-shadow, margin
-    margin-bottom: 15px; // Add space between chart and filters below
-    display: block !important; // Keep display properties if needed for visibility
+    // Remove individual box styles - inherited from parent
+    // background: none;
+    // border: none;
+    // padding: 0;
+    // margin: 0; // Reset margin if needed, gap handles spacing
+    width: 100%; // Ensure it takes full width
+    // display/opacity/visibility might still be needed if dynamically shown/hidden
+    display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  /* Header inside visualization (if used by chart) */
+  /* Chart Header (if used by chart) */
   .ideas-visualization-header {
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--primary);
     text-align: center;
-    margin-bottom: 10px; // Add some space below header
+    margin-bottom: 10px;
   }
 
-  /* Empty state message styling (used inside visualization container) */
-  .no-ideas-message {
+  /* Empty state message (inside visualization) */
+  .no-ideas-message { // Target class used in JS
     padding: 30px 20px;
     text-align: center;
     font-size: 1.1rem;
@@ -39,20 +48,25 @@
     // Keep background distinct if desired, or remove if it should inherit parent
     background: var(--primary-very-low);
     border-radius: 6px; // Optional inner radius
+    margin: 0; // No extra margin needed if it fills the container
   }
 
-  /* Tag filter container styling - Remove outer box styles */
+  /* Tag filter container (inside controls) */
   .ideas-tag-filters {
-    // Removed padding, background, border, border-radius, box-shadow, margin-top
-    // Styles moved to .ideas-portal-controls
+    // Remove individual box styles - inherited from parent
+    // background: none;
+    // border: none;
+    // padding: 0;
+    // margin: 0; // Reset margin if needed, gap handles spacing
+    width: 100%; // Ensure it takes full width
 
-    // Ensure the button wrapper takes full width for centering
+    /* Wrapper for the filter buttons themselves */
     .filter-buttons {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center; // Ensure centering is applied
-      gap: 10px 12px;
-      width: 100%; // Make sure it spans width to allow centering
+      justify-content: center; // Center the buttons horizontally
+      gap: 10px 12px; // Spacing between buttons
+      width: 100%; // Ensure it spans width for centering to work
     }
 
     /* Individual filter tag styling */
@@ -66,23 +80,19 @@
       color: white;
       text-decoration: none;
       transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
-
       &:hover {
         opacity: 0.9;
         transform: scale(1.05);
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
     }
-
-    .tag-filter-reset {
-      background-color: #adb5bd;
-    }
+    .tag-filter-reset { background-color: #adb5bd; }
   }
 
   /* Hide category breadcrumb elements (use sparingly) */
   &:not(.tag-ideas) .category-breadcrumb li:first-child,
   &:not(.tag-ideas) .category-breadcrumb li:last-child {
-     // display: none;
+     /* display: none; */ // Uncomment if needed, but verify necessity
   }
 }
 
@@ -99,7 +109,7 @@
     font-weight: bold !important;
     text-transform: uppercase !important;
     color: white !important;
-    margin-right: 4px !important;
+    margin-right: 4px !important; // Keep right margin for spacing
     text-align: center !important;
     vertical-align: middle !important;
   }
@@ -124,9 +134,9 @@
     display: none !important;
   }
 
-  /* Keep display: inline-block for the third child */
+  /* Ensure the desired one (presumably the 3rd) is displayed */
   .category-status .badge-category__wrapper:nth-child(3) {
-    display: inline-block !important;
+    display: inline-block !important; // Use inline-block or inline-flex based on content
     vertical-align: middle;
   }
 }

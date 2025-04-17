@@ -1,21 +1,19 @@
+// javascripts/discourse/initializers/ideas-title-modifier.js
 import { apiInitializer } from "discourse/lib/api";
-// Assuming ideas-portal-helper.js is correctly imported or helpers are globally available
-import { shouldEnableForCategoryOrTag } from "../lib/ideas-portal-helper"; // Adjust path as needed
+import { shouldEnableForCategoryOrTag, resetCache } from "../lib/ideas-portal-helper";
 
-export default apiInitializer("0.8.1", (api) => { // Increment version if dependent on helper
+export default apiInitializer("0.8.3", (api) => { // Consistent versioning
   const customPlaceholder = "Enter the title of your idea here...";
 
   api.modifyClass("component:composer-title", {
-    pluginId: "ideas-title-modifier", // Unique ID for modification
+    pluginId: "ideas-title-modifier", // Unique ID
 
-    /**
-     * Check if the placeholder needs updating after rendering.
-     */
     _updatePlaceholderIfNeeded() {
-      if (shouldEnableForCategoryOrTag()) { // Use helper
+      // Pass api.container to the helper function
+      if (shouldEnableForCategoryOrTag(api.container)) {
         try {
-          // Use this.element which is the standard Ember way to access the component's element
           const titleInput = this.element?.querySelector('#reply-title');
+          // Only update if placeholder is not already the custom one
           if (titleInput && titleInput.placeholder !== customPlaceholder) {
             titleInput.placeholder = customPlaceholder;
           }
@@ -23,7 +21,7 @@ export default apiInitializer("0.8.1", (api) => { // Increment version if depend
           console.warn("Ideas Portal: Failed to update composer title placeholder.", e);
         }
       }
-      // No 'else' needed - if not enabled, composer should revert to default placeholder automatically
+      // If not enabled, the default placeholder should render automatically
     },
 
     didInsertElement() {
@@ -33,9 +31,16 @@ export default apiInitializer("0.8.1", (api) => { // Increment version if depend
 
     didReceiveAttrs() {
       this._super(...arguments);
-      // Check if attributes changing might affect whether it should be enabled (e.g., composer model changes)
-      // Using requestAnimationFrame helps ensure DOM is ready after potential re-renders from attr changes.
+      // Update if relevant attributes change; rAF ensures DOM is ready
       requestAnimationFrame(() => this._updatePlaceholderIfNeeded());
-    }
+    },
+
+    // Optional: reset placeholder if composer model changes category/tags?
+    // This depends on whetherdidReceiveAttrs covers those changes.
   });
+
+  // // Optional cleanup if needed
+  // api.cleanupStream(() => {
+  //     resetCache();
+  // });
 });
