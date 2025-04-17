@@ -1,59 +1,61 @@
 /* Common styles for Ideas Portal active state */
 .ideas-portal-category {
-  /* Status visualization styling */
+
+  /* Styles for the main controls container injected by JS */
+  .ideas-portal-controls {
+    margin: 16px 0; // Add margin to the outer container
+    // Add any other overall container styling if needed
+  }
+
+  /* Status visualization styling - Restore original intended look */
   .ideas-status-visualization {
     width: 100%;
-    margin: 0 0 10px;
-    padding: 15px;
-    background: var(--secondary);
+    margin: 0 0 10px; // Keep margin-bottom
+    padding: 15px; // Restore padding
+    background: var(--secondary); // Restore background
     /* display/opacity/visibility: Ensure this element is consistently visible when the class is applied. Avoid !important if possible by checking conflicting rules. */
     display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
   }
 
+  /* Header inside visualization (if used by chart itself) */
   .ideas-visualization-header {
-    font-size: 0.95rem; // Consider using relative units like em if suitable
+    font-size: 0.95rem;
     font-weight: 600;
     color: var(--primary);
     text-align: center;
   }
 
-  /* Empty state message styling */
-  .ideas-empty-message {
+  /* Empty state message styling (used inside visualization container) */
+  .no-ideas-message { // Target class used in JS
     padding: 30px 20px;
     text-align: center;
-    font-size: 1.1rem; // Consider using relative units like em if suitable
+    font-size: 1.1rem;
     color: var(--primary-medium);
-    background: var(--primary-very-low);
+    background: var(--primary-very-low); // Match original empty message background
     border-radius: 6px;
-    margin: 15px 0;
+    margin: 0; // No extra margin needed if it fills the container
   }
 
-  /* Tag filter container styling */
+  /* Tag filter container styling (inside .ideas-portal-controls) */
   .ideas-tag-filters {
-    margin: 16px 0;
+    // Removed margin: 16px 0; as it's on the parent now
     padding: 16px;
     border: 1px solid var(--primary-low);
-    background: var(--secondary);
+    background: var(--secondary); // Restore background
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    margin-top: 10px; // Add space between visualization and filters
 
-    .ideas-filter-title {
-      font-size: 1.25rem; // Consider using relative units like em if suitable
-      font-weight: 700;
-      margin: 0 0 12px 0; // Adjusted margin for spacing
-      color: var(--primary);
-      width: 100%;
-      text-align: center; // Center the title
-    }
+    // Removed .ideas-filter-title styles as the title element is removed
 
     .filter-buttons {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px 12px;
-      margin-top: 12px; // Add space below title/chart
+      // Removed margin-top as title is gone
     }
 
     /* Individual filter tag styling */
@@ -61,12 +63,12 @@
       display: inline-block;
       padding: 4px 10px;
       border-radius: 16px;
-      font-size: 0.75rem; // Consistent font size for tags
+      font-size: 0.75rem;
       font-weight: bold;
       text-transform: uppercase;
       color: white;
       text-decoration: none;
-      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease; // Combine transitions
+      transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
 
       &:hover {
         opacity: 0.9;
@@ -76,40 +78,36 @@
     }
 
     .tag-filter-reset {
-      background-color: #adb5bd; // Reset button color
+      background-color: #adb5bd;
     }
   }
 
-  /* Hide category breadcrumb elements (use sparingly, structure might change) */
+  /* Hide category breadcrumb elements (use sparingly) */
   &:not(.tag-ideas) .category-breadcrumb li:first-child,
   &:not(.tag-ideas) .category-breadcrumb li:last-child {
-    // display: none; // Consider if this is truly necessary or if CSS can hide via parent class instead
+     // display: none; // Uncomment if needed, but verify necessity
   }
 }
 
 /* Status Tag Styling in Topic Lists */
 .topic-list {
-  // Define common styles for all status tags
-  [data-tag-name="new"],
-  [data-tag-name="planned"],
-  [data-tag-name="in-progress"],
-  [data-tag-name="already-exists"],
-  [data-tag-name="under-review"],
-  [data-tag-name="completed"],
-  [data-tag-name="not-planned"] {
-    display: inline-block !important; // !important might be needed to override core inline styles
+  // Common styles for all status tags
+  [data-tag-name="new"], [data-tag-name="planned"], [data-tag-name="in-progress"],
+  [data-tag-name="already-exists"], [data-tag-name="under-review"],
+  [data-tag-name="completed"], [data-tag-name="not-planned"] {
+    display: inline-block !important;
     padding: 2px 8px !important;
     border-radius: 16px !important;
-    font-size: 0.75rem !important; // Use consistent small size
+    font-size: 0.75rem !important;
     font-weight: bold !important;
     text-transform: uppercase !important;
     color: white !important;
-    margin-right: 4px !important;
+    margin-right: 4px !important; // Keep right margin for spacing
     text-align: center !important;
-    vertical-align: middle !important; // Helps alignment if heights vary slightly
+    vertical-align: middle !important;
   }
 
-  // Define background colors per status tag
+  // Specific background colors
   [data-tag-name="new"] { background-color: #007bff !important; }
   [data-tag-name="planned"] { background-color: #17a2b8 !important; }
   [data-tag-name="in-progress"] { background-color: #fd7e14 !important; }
@@ -120,8 +118,8 @@
 }
 
 
-/* Category badge styling - Hide specific badges when body class is present */
-/* WARNING: :nth-child selectors are fragile and may break if Discourse structure changes. */
+/* Category badge styling */
+/* WARNING: :nth-child selectors are fragile. */
 .ideas-hide-category-badges {
   .category-input .category-status .badge-category__wrapper:nth-child(1),
   .category-input .category-status .badge-category__wrapper:nth-child(2),
@@ -129,9 +127,10 @@
     display: none !important;
   }
 
-  /* Ensure the desired one (presumably the 3rd) is displayed */
+  /* Revert to inline-block for the third child, assuming it was centered that way */
   .category-status .badge-category__wrapper:nth-child(3) {
-    display: inline-flex !important; // Use inline-flex if it contains flex items
+    display: inline-block !important; // Changed back from inline-flex
+    vertical-align: middle; // Add vertical align if needed for centering with text/other inline blocks
   }
 }
 
@@ -144,5 +143,4 @@
   .tag-filter[data-tag-name="under-review"] { background-color: #20c997; }
   .tag-filter[data-tag-name="completed"] { background-color: #28a745; }
   .tag-filter[data-tag-name="not-planned"] { background-color: #dc3545; }
-  // .tag-filter-reset already styled above
 }
