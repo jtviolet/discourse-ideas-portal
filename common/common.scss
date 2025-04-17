@@ -1,61 +1,58 @@
 /* Common styles for Ideas Portal active state */
 .ideas-portal-category {
 
-  /* Styles for the main controls container injected by JS */
+  /* Styles for the main controls container - THIS is the main box now */
   .ideas-portal-controls {
-    margin: 16px 0; // Add margin to the outer container
-    // Add any other overall container styling if needed
+    margin: 16px 0;
+    padding: 15px; // Apply padding here
+    background: var(--secondary); // Apply background here
+    border-radius: 8px; // Apply border-radius here
+    border: 1px solid var(--primary-low); // Apply border here (optional, adjust as needed)
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); // Apply shadow here
   }
 
-  /* Status visualization styling - Restore original intended look */
+  /* Status visualization styling - Remove outer box styles */
   .ideas-status-visualization {
     width: 100%;
-    margin: 0 0 10px; // Keep margin-bottom
-    padding: 15px; // Restore padding
-    background: var(--secondary); // Restore background
-    /* display/opacity/visibility: Ensure this element is consistently visible when the class is applied. Avoid !important if possible by checking conflicting rules. */
-    display: block !important;
+    // Removed padding, background, border, border-radius, box-shadow, margin
+    margin-bottom: 15px; // Add space between chart and filters below
+    display: block !important; // Keep display properties if needed for visibility
     opacity: 1 !important;
     visibility: visible !important;
   }
 
-  /* Header inside visualization (if used by chart itself) */
+  /* Header inside visualization (if used by chart) */
   .ideas-visualization-header {
     font-size: 0.95rem;
     font-weight: 600;
     color: var(--primary);
     text-align: center;
+    margin-bottom: 10px; // Add some space below header
   }
 
   /* Empty state message styling (used inside visualization container) */
-  .no-ideas-message { // Target class used in JS
+  .no-ideas-message {
     padding: 30px 20px;
     text-align: center;
     font-size: 1.1rem;
     color: var(--primary-medium);
-    background: var(--primary-very-low); // Match original empty message background
-    border-radius: 6px;
-    margin: 0; // No extra margin needed if it fills the container
+    // Keep background distinct if desired, or remove if it should inherit parent
+    background: var(--primary-very-low);
+    border-radius: 6px; // Optional inner radius
   }
 
-  /* Tag filter container styling (inside .ideas-portal-controls) */
+  /* Tag filter container styling - Remove outer box styles */
   .ideas-tag-filters {
-    // Removed margin: 16px 0; as it's on the parent now
-    padding: 16px;
-    border: 1px solid var(--primary-low);
-    background: var(--secondary); // Restore background
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    margin-top: 10px; // Add space between visualization and filters
+    // Removed padding, background, border, border-radius, box-shadow, margin-top
+    // Styles moved to .ideas-portal-controls
 
-    // Removed .ideas-filter-title styles as the title element is removed
-
+    // Ensure the button wrapper takes full width for centering
     .filter-buttons {
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: center; // Ensure centering is applied
       gap: 10px 12px;
-      // Removed margin-top as title is gone
+      width: 100%; // Make sure it spans width to allow centering
     }
 
     /* Individual filter tag styling */
@@ -85,7 +82,7 @@
   /* Hide category breadcrumb elements (use sparingly) */
   &:not(.tag-ideas) .category-breadcrumb li:first-child,
   &:not(.tag-ideas) .category-breadcrumb li:last-child {
-     // display: none; // Uncomment if needed, but verify necessity
+     // display: none;
   }
 }
 
@@ -102,7 +99,7 @@
     font-weight: bold !important;
     text-transform: uppercase !important;
     color: white !important;
-    margin-right: 4px !important; // Keep right margin for spacing
+    margin-right: 4px !important;
     text-align: center !important;
     vertical-align: middle !important;
   }
@@ -127,10 +124,10 @@
     display: none !important;
   }
 
-  /* Revert to inline-block for the third child, assuming it was centered that way */
+  /* Keep display: inline-block for the third child */
   .category-status .badge-category__wrapper:nth-child(3) {
-    display: inline-block !important; // Changed back from inline-flex
-    vertical-align: middle; // Add vertical align if needed for centering with text/other inline blocks
+    display: inline-block !important;
+    vertical-align: middle;
   }
 }
 
