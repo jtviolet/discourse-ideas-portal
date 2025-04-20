@@ -528,18 +528,23 @@ export default apiInitializer("0.11.1", (api) => {
     api.cleanupStream(() => darkMediaQuery.removeListener(updateChart));
   }
   
-  // Observe theme stylesheet changes (theme toggles) and update chart
-  // Observe <link> additions in <head> (e.g., theme stylesheet reloads) to update chart
+  // Observe theme stylesheet changes and <link> toggles (e.g., theme toggle) to refresh chart
   const headObserver = new MutationObserver(mutations => {
     for (const m of mutations) {
-      m.addedNodes.forEach(node => {
-        if (node.tagName === 'LINK') {
-          updateChart();
-        }
-      });
+      if (m.type === 'childList') {
+        // New <link> tags added
+        m.addedNodes.forEach(node => {
+          if (node.tagName === 'LINK') {
+            updateChart();
+          }
+        });
+      } else if (m.type === 'attributes' && m.target.tagName === 'LINK' && m.attributeName === 'disabled') {
+        // <link> tag disabled/enabled
+        updateChart();
+      }
     }
   });
-  headObserver.observe(document.head, { childList: true });
+  headObserver.observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
   api.cleanupStream(() => headObserver.disconnect());
   // Observe attribute changes on <html> (e.g., data-theme) to refresh chart on Discourse theme toggle
   const htmlObserver = new MutationObserver(mutations => {
