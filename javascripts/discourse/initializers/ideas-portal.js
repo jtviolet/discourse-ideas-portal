@@ -529,17 +529,29 @@ export default apiInitializer("0.11.1", (api) => {
   }
   
   // Observe theme stylesheet changes (theme toggles) and update chart
+  // Observe <link> additions in <head> (e.g., theme stylesheet reloads) to update chart
   const headObserver = new MutationObserver(mutations => {
     for (const m of mutations) {
-      for (const node of m.addedNodes) {
-        if (node.tagName === 'LINK' && node.getAttribute('data-content-type') === 'theme') {
+      m.addedNodes.forEach(node => {
+        if (node.tagName === 'LINK') {
           updateChart();
         }
-      }
+      });
     }
   });
   headObserver.observe(document.head, { childList: true });
   api.cleanupStream(() => headObserver.disconnect());
+  // Observe attribute changes on <html> (e.g., data-theme) to refresh chart on Discourse theme toggle
+  const htmlObserver = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      if (m.attributeName === 'data-theme') {
+        updateChart();
+        break;
+      }
+    }
+  });
+  htmlObserver.observe(document.documentElement, { attributes: true });
+  api.cleanupStream(() => htmlObserver.disconnect());
   api.cleanupStream(() => {
     if (window.ideasPortalObserver) {
       window.ideasPortalObserver.disconnect();
