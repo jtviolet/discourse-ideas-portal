@@ -170,10 +170,7 @@ export default apiInitializer("0.11.1", (api) => {
 
   const createBarChart = (canvas, labels, data, backgroundColors, total) => {
     const chartTitle = `${total} ${total === 1 ? 'idea' : 'ideas'}`;
-    const returnPrimaryColor = () => {
-      const primaryColor = getComputedStyle(canvas).getPropertyValue("--primary");
-      return primaryColor;
-    };
+    // Using scriptable options for dynamic theme colors; no returnPrimaryColor helper needed
   
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -194,18 +191,19 @@ export default apiInitializer("0.11.1", (api) => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
+      plugins: {
           legend: {
             display: false
           },
-          title: {
+        title: {
             display: true,
             text: chartTitle,
             font: {
               size: 20,
               weight: 'bold'
             },
-            color: returnPrimaryColor(),
+            // Scriptable color to adapt to theme
+            color: (ctx) => getComputedStyle(ctx.chart.canvas).getPropertyValue("--primary").trim(),
             padding: {
               bottom: 10
             }
@@ -224,25 +222,27 @@ export default apiInitializer("0.11.1", (api) => {
           }
         },
         scales: {
-          x: {
-            grid: {
-              display: false
-            },
-            ticks: {
-              color: returnPrimaryColor(),
+        x: {
+          grid: {
+            display: false,
+            // optional scriptable grid color
+            color: (ctx) => getComputedStyle(ctx.chart.canvas).getPropertyValue("--primary").trim(),
+          },
+          ticks: {
+            color: (ctx) => getComputedStyle(ctx.chart.canvas).getPropertyValue("--primary").trim(),
               font: {
                 size: 16
               }
             }
           },
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: returnPrimaryColor()
-            },
-            ticks: {
-              precision: 0,
-              color: returnPrimaryColor(),
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: (ctx) => getComputedStyle(ctx.chart.canvas).getPropertyValue("--primary").trim(),
+          },
+          ticks: {
+            precision: 0,
+            color: (ctx) => getComputedStyle(ctx.chart.canvas).getPropertyValue("--primary").trim(),
               font: {
                 size: 16
               }
@@ -516,32 +516,20 @@ export default apiInitializer("0.11.1", (api) => {
     }
   });
 
-  // Update chart colors on theme change (light/dark mode)
-  api.onThemeChange(() => {
+  // Listen for OS dark mode changes and update chart colors
+  const darkMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  function updateChartOnMediaChange() {
     if (window.ideasStatusChart) {
-      const color = getComputedStyle(document.documentElement)
-        .getPropertyValue("--primary").trim();
-      const chart = window.ideasStatusChart;
-      // Update axis and title colors
-      if (chart.options.scales?.x?.ticks) {
-        chart.options.scales.x.ticks.color = color;
-      }
-      if (chart.options.scales?.x?.grid) {
-        chart.options.scales.x.grid.color = color;
-      }
-      if (chart.options.scales?.y?.ticks) {
-        chart.options.scales.y.ticks.color = color;
-      }
-      if (chart.options.scales?.y?.grid) {
-        chart.options.scales.y.grid.color = color;
-      }
-      if (chart.options.plugins?.title) {
-        chart.options.plugins.title.color = color;
-      }
-      chart.update();
+      window.ideasStatusChart.update();
     }
-  });
-  
+  }
+  if (darkMediaQuery.addEventListener) {
+    darkMediaQuery.addEventListener('change', updateChartOnMediaChange);
+    api.cleanupStream(() => darkMediaQuery.removeEventListener('change', updateChartOnMediaChange));
+  } else if (darkMediaQuery.addListener) {
+    darkMediaQuery.addListener(updateChartOnMediaChange);
+    api.cleanupStream(() => darkMediaQuery.removeListener(updateChartOnMediaChange));
+  }
   api.cleanupStream(() => {
     if (window.ideasPortalObserver) {
       window.ideasPortalObserver.disconnect();
