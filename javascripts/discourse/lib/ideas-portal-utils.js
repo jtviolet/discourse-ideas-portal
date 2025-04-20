@@ -40,15 +40,13 @@ export function getCurrentTag(api) {
   if (!currentRoute.includes("tag")) {
     return null;
   }
-  // Try controllers for various versions
-  const tagsCtrl = api.container.lookup("controller:tags.show");
+  // Try controller for tag page (newer Discourse)
   const tagCtrl = api.container.lookup("controller:tag.show");
   let currentTag;
-  if (tagsCtrl?.tag) {
-    currentTag = tagsCtrl.tag;
-  } else if (tagCtrl?.tag) {
+  if (tagCtrl?.tag) {
     currentTag = tagCtrl.tag;
   } else {
+    // Fallback: extract tag from URL
     const m = window.location.pathname.match(/\/tag\/([^\/]+)/);
     currentTag = m?.[1];
   }
