@@ -516,30 +516,46 @@ export default apiInitializer("0.11.1", (api) => {
     }
   });
 
-  // Listen for OS dark mode changes and update chart colors
-  // Listen for OS dark mode changes and update chart
+  // Setup chart update on theme changes (OS preference and Discourse theme toggles)
   const darkMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  const updateChart = () => { if (window.ideasStatusChart) window.ideasStatusChart.update(); };
+  function updateChart() {
+    console.log('IdeasPortal: updateChart() called; data-theme=',
+      document.documentElement.getAttribute('data-theme'),
+      'prefers-color-scheme dark=', darkMediaQuery.matches);
+    if (window.ideasStatusChart) {
+      window.ideasStatusChart.update();
+    }
+  }
+  // Initial log to confirm load
+  console.log('IdeasPortal: initial data-theme=',
+    document.documentElement.getAttribute('data-theme'),
+    'prefers-color-scheme dark=', darkMediaQuery.matches);
+  // Listen for OS-level preference changes
+  function handlePrefersChange(e) {
+    console.log('IdeasPortal: prefers-color-scheme change, matches dark=', e.matches);
+    updateChart();
+  }
   if (darkMediaQuery.addEventListener) {
-    darkMediaQuery.addEventListener('change', updateChart);
-    api.cleanupStream(() => darkMediaQuery.removeEventListener('change', updateChart));
+    darkMediaQuery.addEventListener('change', handlePrefersChange);
+    api.cleanupStream(() => darkMediaQuery.removeEventListener('change', handlePrefersChange));
   } else if (darkMediaQuery.addListener) {
-    darkMediaQuery.addListener(updateChart);
-    api.cleanupStream(() => darkMediaQuery.removeListener(updateChart));
+    darkMediaQuery.addListener(handlePrefersChange);
+    api.cleanupStream(() => darkMediaQuery.removeListener(handlePrefersChange));
   }
   
   // Observe theme stylesheet changes and <link> toggles (e.g., theme toggle) to refresh chart
   const headObserver = new MutationObserver(mutations => {
+    console.log('IdeasPortal: headObserver saw mutations', mutations);
     for (const m of mutations) {
       if (m.type === 'childList') {
-        // New <link> tags added
         m.addedNodes.forEach(node => {
           if (node.tagName === 'LINK') {
+            console.log('IdeasPortal: headObserver added LINK', node.href);
             updateChart();
           }
         });
       } else if (m.type === 'attributes' && m.target.tagName === 'LINK' && m.attributeName === 'disabled') {
-        // <link> tag disabled/enabled
+        console.log('IdeasPortal: headObserver LINK disabled toggled', m.target.href, 'disabled=', m.target.disabled);
         updateChart();
       }
     }
