@@ -64,7 +64,6 @@ export default apiInitializer("0.11.1", (api) => {
       const data = await response.json();
       const topics = data?.topic_list?.topics || [];
   
-      console.log(`Fetched tag page ${page}, got ${topics.length} topics`);
       allTopics = allTopics.concat(topics);
   
       if (topics.length < pageSize) {
@@ -519,20 +518,12 @@ export default apiInitializer("0.11.1", (api) => {
   // Setup chart update on theme changes (OS preference and Discourse theme toggles)
   const darkMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   function updateChart() {
-    console.log('IdeasPortal: updateChart() called; data-theme=',
-      document.documentElement.getAttribute('data-theme'),
-      'prefers-color-scheme dark=', darkMediaQuery.matches);
     if (window.ideasStatusChart) {
       window.ideasStatusChart.update();
     }
   }
-  // Initial log to confirm load
-  console.log('IdeasPortal: initial data-theme=',
-    document.documentElement.getAttribute('data-theme'),
-    'prefers-color-scheme dark=', darkMediaQuery.matches);
   // Listen for OS-level preference changes
   function handlePrefersChange(e) {
-    console.log('IdeasPortal: prefers-color-scheme change, matches dark=', e.matches);
     updateChart();
   }
   if (darkMediaQuery.addEventListener) {
@@ -545,17 +536,14 @@ export default apiInitializer("0.11.1", (api) => {
   
   // Observe theme stylesheet changes and <link> toggles (e.g., theme toggle) to refresh chart
   const headObserver = new MutationObserver(mutations => {
-    console.log('IdeasPortal: headObserver saw mutations', mutations);
     for (const m of mutations) {
       if (m.type === 'childList') {
         m.addedNodes.forEach(node => {
           if (node.tagName === 'LINK') {
-            console.log('IdeasPortal: headObserver added LINK', node.href);
             updateChart();
           }
         });
       } else if (m.type === 'attributes' && m.target.tagName === 'LINK' && m.attributeName === 'disabled') {
-        console.log('IdeasPortal: headObserver LINK disabled toggled', m.target.href, 'disabled=', m.target.disabled);
         updateChart();
       }
     }
@@ -566,8 +554,6 @@ export default apiInitializer("0.11.1", (api) => {
   const htmlObserver = new MutationObserver(mutations => {
     mutations.forEach(m => {
       const attr = m.attributeName;
-      const newVal = document.documentElement.getAttribute(attr);
-      console.log('IdeasPortal: htmlObserver saw attribute', attr, 'new value:', newVal);
       // On data-theme or data-user-theme or html class changes, update chart
       if (attr === 'data-theme' || attr === 'data-user-theme' || attr === 'class') {
         updateChart();
@@ -581,7 +567,6 @@ export default apiInitializer("0.11.1", (api) => {
   const bodyObserver = new MutationObserver(mutations => {
     mutations.forEach(m => {
       if (m.attributeName === 'class') {
-        console.log('IdeasPortal: bodyObserver saw class change to', document.body.className);
         updateChart();
       }
     });
@@ -592,7 +577,6 @@ export default apiInitializer("0.11.1", (api) => {
   // Fallback: periodically update chart to catch theme changes not detected by observers
   // Reduced interval to 1 second for faster response
   const chartUpdateInterval = setInterval(() => {
-    console.log('IdeasPortal: periodic chart update');
     if (window.ideasStatusChart) {
       window.ideasStatusChart.update();
     }
