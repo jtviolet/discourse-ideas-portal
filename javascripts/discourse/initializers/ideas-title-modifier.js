@@ -1,5 +1,5 @@
 import { apiInitializer } from "discourse/lib/api";
-import { shouldEnable } from "discourse/lib/ideas-portal-utils";
+import { shouldEnable } from "../lib/ideas-portal-utils";
 
 export default apiInitializer("0.8", (api) => {
   // Only modify composer title if on enabled category or tag page

@@ -2,7 +2,7 @@ import { apiInitializer } from "discourse/lib/api";
 import {
   parseCategories,
   getCurrentTag
-} from "discourse/lib/ideas-portal-utils";
+} from "../lib/ideas-portal-utils";
 
 export default apiInitializer("0.8", (api) => {
   const enabledCategories = parseCategories();

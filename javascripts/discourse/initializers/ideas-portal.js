@@ -7,7 +7,7 @@ import {
   getCurrentCategory,
   getCurrentTag,
   shouldEnable
-} from "discourse/lib/ideas-portal-utils";
+} from "../lib/ideas-portal-utils";
 
 export default apiInitializer("0.11.1", (api) => {
   const enabledCategories = parseCategories();

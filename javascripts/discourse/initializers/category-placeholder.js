@@ -1,6 +1,6 @@
 import { apiInitializer } from "discourse/lib/api";
 import I18n from "I18n";
-import { shouldEnable } from "discourse/lib/ideas-portal-utils";
+import { shouldEnable } from "../lib/ideas-portal-utils";
 
 export default apiInitializer("0.8", (api) => {
   // Save the original translation for the category chooser
