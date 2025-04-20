@@ -516,6 +516,32 @@ export default apiInitializer("0.11.1", (api) => {
     }
   });
 
+  // Update chart colors on theme change (light/dark mode)
+  api.onThemeChange(() => {
+    if (window.ideasStatusChart) {
+      const color = getComputedStyle(document.documentElement)
+        .getPropertyValue("--primary").trim();
+      const chart = window.ideasStatusChart;
+      // Update axis and title colors
+      if (chart.options.scales?.x?.ticks) {
+        chart.options.scales.x.ticks.color = color;
+      }
+      if (chart.options.scales?.x?.grid) {
+        chart.options.scales.x.grid.color = color;
+      }
+      if (chart.options.scales?.y?.ticks) {
+        chart.options.scales.y.ticks.color = color;
+      }
+      if (chart.options.scales?.y?.grid) {
+        chart.options.scales.y.grid.color = color;
+      }
+      if (chart.options.plugins?.title) {
+        chart.options.plugins.title.color = color;
+      }
+      chart.update();
+    }
+  });
+  
   api.cleanupStream(() => {
     if (window.ideasPortalObserver) {
       window.ideasPortalObserver.disconnect();
