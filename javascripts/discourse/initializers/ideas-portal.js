@@ -588,6 +588,15 @@ export default apiInitializer("0.11.1", (api) => {
   });
   bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
   api.cleanupStream(() => bodyObserver.disconnect());
+  
+  // Fallback: periodically update chart to catch theme changes not detected by observers
+  const chartUpdateInterval = setInterval(() => {
+    console.log('IdeasPortal: periodic chart update');
+    if (window.ideasStatusChart) {
+      window.ideasStatusChart.update();
+    }
+  }, 2000);
+  api.cleanupStream(() => clearInterval(chartUpdateInterval));
   api.cleanupStream(() => {
     if (window.ideasPortalObserver) {
       window.ideasPortalObserver.disconnect();
