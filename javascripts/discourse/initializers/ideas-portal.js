@@ -517,19 +517,29 @@ export default apiInitializer("0.11.1", (api) => {
   });
 
   // Listen for OS dark mode changes and update chart colors
+  // Listen for OS dark mode changes and update chart
   const darkMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  function updateChartOnMediaChange() {
-    if (window.ideasStatusChart) {
-      window.ideasStatusChart.update();
-    }
-  }
+  const updateChart = () => { if (window.ideasStatusChart) window.ideasStatusChart.update(); };
   if (darkMediaQuery.addEventListener) {
-    darkMediaQuery.addEventListener('change', updateChartOnMediaChange);
-    api.cleanupStream(() => darkMediaQuery.removeEventListener('change', updateChartOnMediaChange));
+    darkMediaQuery.addEventListener('change', updateChart);
+    api.cleanupStream(() => darkMediaQuery.removeEventListener('change', updateChart));
   } else if (darkMediaQuery.addListener) {
-    darkMediaQuery.addListener(updateChartOnMediaChange);
-    api.cleanupStream(() => darkMediaQuery.removeListener(updateChartOnMediaChange));
+    darkMediaQuery.addListener(updateChart);
+    api.cleanupStream(() => darkMediaQuery.removeListener(updateChart));
   }
+  
+  // Observe theme stylesheet changes (theme toggles) and update chart
+  const headObserver = new MutationObserver(mutations => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes) {
+        if (node.tagName === 'LINK' && node.getAttribute('data-content-type') === 'theme') {
+          updateChart();
+        }
+      }
+    }
+  });
+  headObserver.observe(document.head, { childList: true });
+  api.cleanupStream(() => headObserver.disconnect());
   api.cleanupStream(() => {
     if (window.ideasPortalObserver) {
       window.ideasPortalObserver.disconnect();
