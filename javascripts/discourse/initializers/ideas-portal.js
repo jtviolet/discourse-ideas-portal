@@ -562,17 +562,32 @@ export default apiInitializer("0.11.1", (api) => {
   });
   headObserver.observe(document.head, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
   api.cleanupStream(() => headObserver.disconnect());
-  // Observe attribute changes on <html> (e.g., data-theme) to refresh chart on Discourse theme toggle
+  // Observe all attribute changes on <html> to detect Discourse theme toggles
   const htmlObserver = new MutationObserver(mutations => {
-    for (const m of mutations) {
-      if (m.attributeName === 'data-theme') {
+    mutations.forEach(m => {
+      const attr = m.attributeName;
+      const newVal = document.documentElement.getAttribute(attr);
+      console.log('IdeasPortal: htmlObserver saw attribute', attr, 'new value:', newVal);
+      // On data-theme or data-user-theme or html class changes, update chart
+      if (attr === 'data-theme' || attr === 'data-user-theme' || attr === 'class') {
         updateChart();
-        break;
       }
-    }
+    });
   });
-  htmlObserver.observe(document.documentElement, { attributes: true });
+  htmlObserver.observe(document.documentElement, { attributes: true, attributeOldValue: true });
   api.cleanupStream(() => htmlObserver.disconnect());
+  
+  // Observe class changes on <body> as well
+  const bodyObserver = new MutationObserver(mutations => {
+    mutations.forEach(m => {
+      if (m.attributeName === 'class') {
+        console.log('IdeasPortal: bodyObserver saw class change to', document.body.className);
+        updateChart();
+      }
+    });
+  });
+  bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+  api.cleanupStream(() => bodyObserver.disconnect());
   api.cleanupStream(() => {
     if (window.ideasPortalObserver) {
       window.ideasPortalObserver.disconnect();
